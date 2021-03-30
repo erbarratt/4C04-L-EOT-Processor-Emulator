@@ -1,13 +1,9 @@
 #include "main.h"
 #include <X11/Xlib.h>
-/*
-A simple example of using the gfx library.
-CSE 20211
-9/7/2011
-by Prof. Thain
-*/
+
 
 int main(void) {
+
    Display *d;
    Window w;
    XEvent e;
@@ -38,4 +34,5 @@ int main(void) {
  
    XCloseDisplay(d);
    return 0;
+   
 }
