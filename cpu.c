@@ -8,8 +8,9 @@
 */
 	INSTRUCTION instructions[16] = {
 		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0000
-		{LDR, "Load Register, Immediate", &cpu_ins_LRR, &cpu_am_AMI, },      //0x0002
-		{LDR, "Load Register, Memory", &cpu_ins_LRR, &cpu_am_AMM, },         //0x0003
+		{LDR, "Load Register, Immediate", &cpu_ins_LRR, &cpu_am_AMI, },      //0x0001
+		{LDR, "Load Register, Memory", &cpu_ins_LRR, &cpu_am_AMM, },         //0x0002
+		{STR, "Store Register, Immediate", &cpu_ins_STR, &cpu_am_AMI, },     //0x0003
 		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0004
 		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0005
 		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0006
@@ -87,7 +88,10 @@
 	}
 	
 /*
-* Instruction: No Operation
+* Instruction: Load register
+* NoAddress: n/a
+* Immediate: 3 cycles
+* Memory: 4 cycles
 * @return void
 */
 	void cpu_ins_LRR(){
@@ -172,6 +176,51 @@
 		}
 		
 	}
+	
+/*
+* Instruction: Load register
+* NoAddress: n/a
+* Immediate: 3 cycles
+* Memory: n/a
+* @return void
+*/
+	void cpu_ins_STR(){
+	
+		switch(cpu.remCycls){
+		
+			//load IR1 with the identifier for which register to finally load
+				case 3:
+					cpu.IR1 = cpu_read(cpu.PC);
+				break;
+				
+			//load IR2 with address of the destination memory location
+				case 2:
+					cpu.IR2 = cpu_read(cpu.PC);
+				break;
+				
+			//load the value at IR2 into register chosen in IR1
+				case 1: {
+				
+					switch(cpu.IR1){
+						
+						case 0:
+						default:
+							cpu_write(cpu.R0, cpu.IR2);
+						break;
+						case 1:
+							cpu_write(cpu.R1, cpu.IR2);
+						break;
+						case 2:
+							cpu_write(cpu.R2, cpu.IR2);
+						break;
+						
+					}
+				
+				} break;
+		
+		}
+	
+	}
 
 /**
 * Reset System to mem and cpu start state
@@ -197,7 +246,7 @@
 			//holding vars
 				uint8_t c, new, tmp;
 				uint8_t hi = 0x00;
-				uint8_t lo = 0x00;
+				uint8_t lo;
 				
 				int bytes = 0;
 				uint8_t nOffset = PROG_MEM_LOC;

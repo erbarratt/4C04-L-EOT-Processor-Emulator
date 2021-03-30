@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdint-gcc.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define MEM_LENGTH 256
-#define PROG_MEM_LOC 0x80;
+#define PROG_MEM_LOC 0x80
 
 typedef enum  {
 	NoAddress,
@@ -15,8 +16,8 @@ typedef enum  {
 	NOP, //execute nothing
 	LDR, //load following register with following
 	STR, //store following register at following mem
-	ABA, //add b to a, store in a
-	AAB, //add a to b, store in b
+	ADD, //add b to a, store in a
+	SUB, //add a to b, store in b
 } INSTRUCTION_TYPE;
 
 typedef struct{
@@ -28,20 +29,41 @@ typedef struct{
 
 typedef struct{
 
-	uint8_t IR1;
-	uint8_t IR2;
-	uint8_t PC;
-	uint8_t R0;
-	uint8_t R1;
-	uint8_t R2;
+	//program counter
+		uint8_t PC;
+
+	//internal registers, 8bits
+		uint8_t IR1;
+		uint8_t IR2;
 	
-	uint8_t RAM[MEM_LENGTH];
+	//addressable registers, 8 bits
+		uint8_t R0;
+		uint8_t R1;
+		uint8_t R2;
 	
-	INSTRUCTION INS;
-	uint8_t OP;
-	ADRESS_MODE AM;
+	//ROM + RAM
+		uint8_t RAM[MEM_LENGTH];
 	
-	uint8_t remCycls;
+	//Carry flag
+		bool C;
+	
+	//Zero Flag
+		bool Z;
+	
+	//Signed arithmetic flag
+		bool S;
+	
+	//current instruction
+		INSTRUCTION INS;
+
+	//current opcode
+		uint8_t OP;
+	
+	//current address mode
+		ADRESS_MODE AM;
+	
+	//remaining cycles
+		uint8_t remCycls;
 	
 } CPU;
 
@@ -55,6 +77,7 @@ extern CPU cpu;
 //Instructions
 	void cpu_ins_NOP();
 	void cpu_ins_LRR();
+	void cpu_ins_STR();
 	
 	void system_restart();
 	void cpu_execute();
