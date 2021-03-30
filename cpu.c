@@ -7,22 +7,22 @@
 * Instruction opcode lookup table
 */
 	INSTRUCTION instructions[16] = {
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0000
-		{LDR, "Load Register, Immediate", &cpu_ins_LRR, &cpu_am_AMI, },      //0x0001
-		{LDR, "Load Register, Memory", &cpu_ins_LRR, &cpu_am_AMM, },         //0x0002
-		{STR, "Store Register, Immediate", &cpu_ins_STR, &cpu_am_AMI, },     //0x0003
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0004
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0005
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0006
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0007
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0008
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0009
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x000a
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x000b
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x000c
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x000d
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x000e
-		{NOP, "No Operation", &cpu_ins_NOP, &cpu_am_AMN, }                   //0x000f
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0000
+		{LDR, "LDR", "Load Register, Immediate", &cpu_ins_LRR, &cpu_am_AMI, },      //0x0001
+		{LDR, "LDR", "Load Register, Memory", &cpu_ins_LRR, &cpu_am_AMM, },         //0x0002
+		{STR, "STR", "Store Register, Immediate", &cpu_ins_STR, &cpu_am_AMI, },     //0x0003
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0004
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0005
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0006
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0007
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0008
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x0009
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x000a
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x000b
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x000c
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x000d
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, },                  //0x000e
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, }                   //0x000f
 	};
 	
 /*
@@ -30,7 +30,7 @@
 * @return uint8_t
 */
 	uint8_t cpu_read(uint8_t addr){
-		cpu.PC++;
+		cpu.PCO++;
 		return cpu.RAM[addr];
 	}
 	
@@ -39,7 +39,7 @@
 * @return void
 */
 	void cpu_write(uint8_t addr, uint8_t data){
-		cpu.PC++;
+		cpu.PCO++;
 		cpu.RAM[addr] = data;
 	}
 	
@@ -51,7 +51,7 @@
 	* @return uint8_t
 	*/
 		uint8_t cpu_am_AMN(){
-			cpu.AM = NoAddress;
+			cpu.ADM = NoAddress;
 			return 1;
 		}
 		
@@ -61,7 +61,7 @@
 	* @return uint8_t
 	*/
 		uint8_t cpu_am_AMI(){
-			cpu.AM = Immediate;
+			cpu.ADM = Immediate;
 			return 3;
 		}
 		
@@ -71,7 +71,7 @@
 	* @return uint8_t
 	*/
 		uint8_t cpu_am_AMM(){
-			cpu.AM = Memory;
+			cpu.ADM = Memory;
 			return 4;
 		}
 		
@@ -84,7 +84,7 @@
 */
 	void cpu_ins_NOP(){
 		//execute NOP
-			cpu.PC++;
+			return;
 	}
 	
 /*
@@ -96,18 +96,18 @@
 */
 	void cpu_ins_LRR(){
 	
-		if(cpu.AM == Immediate){
+		if(cpu.ADM == Immediate){
 		
-			switch(cpu.remCycls){
+			switch(cpu.CRE){
 			
 				//load IR1 with the identifier for which register to finally load
 					case 3:
-						cpu.IR1 = cpu_read(cpu.PC);
+						cpu.IR1 = cpu_read(cpu.PCO);
 					break;
 					
 				//load IR2 with the value at mem location
 					case 2:
-						cpu.IR2 = cpu_read(cpu.PC);
+						cpu.IR2 = cpu_read(cpu.PCO);
 					break;
 					
 				//load the value at IR2 into register chosen in IR1
@@ -117,13 +117,13 @@
 							
 							case 0:
 							default:
-								cpu.R0 = cpu.IR2;
+								cpu.AR0 = cpu.IR2;
 							break;
 							case 1:
-								cpu.R1 = cpu.IR2;
+								cpu.AR1 = cpu.IR2;
 							break;
 							case 2:
-								cpu.R2 = cpu.IR2;
+								cpu.AR2 = cpu.IR2;
 							break;
 							
 						}
@@ -134,16 +134,16 @@
 		
 		} else {
 		
-			switch(cpu.remCycls){
+			switch(cpu.CRE){
 			
 				//load IR1 with the identifier for which register to finally load
 					case 4:
-						cpu.IR1 = cpu_read(cpu.PC);
+						cpu.IR1 = cpu_read(cpu.PCO);
 					break;
 					
 				//load IR2 with the mem address for the value
 					case 3:
-						cpu.IR2 = cpu_read(cpu.PC);
+						cpu.IR2 = cpu_read(cpu.PCO);
 					break;
 					
 				//load the value stored at mem location in IR2 into IR2
@@ -158,13 +158,13 @@
 							
 							case 0:
 							default:
-								cpu.R0 = cpu.IR2;
+								cpu.AR0 = cpu.IR2;
 							break;
 							case 1:
-								cpu.R1 = cpu.IR2;
+								cpu.AR1 = cpu.IR2;
 							break;
 							case 2:
-								cpu.R2 = cpu.IR2;
+								cpu.AR2 = cpu.IR2;
 							break;
 							
 						}
@@ -186,16 +186,16 @@
 */
 	void cpu_ins_STR(){
 	
-		switch(cpu.remCycls){
+		switch(cpu.CRE){
 		
 			//load IR1 with the identifier for which register to finally load
 				case 3:
-					cpu.IR1 = cpu_read(cpu.PC);
+					cpu.IR1 = cpu_read(cpu.PCO);
 				break;
 				
 			//load IR2 with address of the destination memory location
 				case 2:
-					cpu.IR2 = cpu_read(cpu.PC);
+					cpu.IR2 = cpu_read(cpu.PCO);
 				break;
 				
 			//load the value at IR2 into register chosen in IR1
@@ -205,13 +205,13 @@
 						
 						case 0:
 						default:
-							cpu_write(cpu.R0, cpu.IR2);
+							cpu_write(cpu.AR0, cpu.IR2);
 						break;
 						case 1:
-							cpu_write(cpu.R1, cpu.IR2);
+							cpu_write(cpu.AR1, cpu.IR2);
 						break;
 						case 2:
-							cpu_write(cpu.R2, cpu.IR2);
+							cpu_write(cpu.AR2, cpu.IR2);
 						break;
 						
 					}
@@ -335,44 +335,44 @@
 				//@1
 			cpu.IR2 = 0x0000;
 				//@1
-			cpu.R0 = 0x00;
+			cpu.AR0 = 0x00;
 				//@1
-			cpu.R1 = 0x00;
+			cpu.AR1 = 0x00;
 				//@1
-			cpu.R2 = 0x00;
+			cpu.AR2 = 0x00;
 				//@1
 		
 		//reset program counter to start of program memory (ROM)
-			cpu.PC = 0x80;
+			cpu.PCO = 0x80;
 				//@1
 				
 		//set remaing cycles to 0, which indicates read new instruction
-			cpu.remCycls = 0;
+			cpu.CRE = 0;
 		
 	}
 	
 	void cpu_execute(){
 	
-		if(cpu.remCycls == 0){
+		if(cpu.CRE == 0){
 		
 			//read next instruction
-				cpu.IR1 = cpu_read(cpu.PC);
+				cpu.IR1 = cpu_read(cpu.PCO);
 				//@1
 				cpu.INS = instructions[cpu.IR1];
 				
 			//set OP
-				cpu.OP = (uint8_t)cpu.IR1;
+				cpu.OPC = (uint8_t)cpu.IR1;
 				
 			//set address mode by calling function
 			//address mode will always add 0+ more cycles
-				cpu.remCycls = (*instructions[cpu.OP].addrmode)();
+				cpu.CRE = (*instructions[cpu.OPC].addrmode)();
 		
 		} else {
 		
-			(*instructions[cpu.OP].operate)();
+			(*instructions[cpu.OPC].operate)();
 			//@1
 			
-			cpu.remCycls--;
+			cpu.CRE--;
 		
 		}
 	

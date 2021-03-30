@@ -82,7 +82,7 @@ int main(void){
 				//progress through next cycle
 					cpu_execute();
 					
-					printf("%#X %d\n", cpu.PC, cpu.remCycls);
+					printf("%#X %d\n", cpu.PCO, cpu.CRE);
 					
 				//draw current state
 					draw_all(display, window, gc);

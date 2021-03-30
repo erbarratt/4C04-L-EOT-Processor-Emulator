@@ -53,12 +53,115 @@
 	
 	}
 	
+	void draw_cpu(Display * display, Window window, GC gc){
+	
+		char * msg = "CPU Status";
+		int msgX = 800 + (int)(200 - (strlen(msg)*10)) / 2;
+		draw_string(display, window, gc, 0x28d9ed, msgX, 30, msg);
+		
+		//instruction name
+			char arMsg3[100] = "Instruction: ";
+			strcat(arMsg3, instructions[cpu.OPC].name);
+			int arMsg3X = 800 + (int)(200 - (strlen(arMsg3)*10)) / 2;
+			draw_string(display, window, gc, 0xFFFFFF, arMsg3X, 60, arMsg3);
+		
+		//PCO and OPcode
+			char pcMsg[50] = "PCO-[";
+			char hashTemp[5];
+			draw_hex((uint32_t)cpu.PCO, 2, hashTemp);
+			strcat(pcMsg, hashTemp);
+			
+			strcat(pcMsg, "] OPC-[");
+			char hashTemp2[5];
+			draw_hex((uint32_t)cpu.OPC, 2, hashTemp2);
+			strcat(pcMsg, hashTemp2);
+			strcat(pcMsg, "]");
+			
+			int pcMsgX = 800 + (int)(200 - (strlen(pcMsg)*10)) / 2;
+			draw_string(display, window, gc, 0xFFFFFF, pcMsgX, 90, pcMsg);
+		
+		//Adress mode and Cycles Remaining
+			char adMsg[50] = "ADM-[";
+			char hashTemp3[5];
+			draw_hex((uint32_t)cpu.ADM, 2, hashTemp3);
+			strcat(adMsg, hashTemp3);
+			
+			strcat(adMsg, "] CRE-[");
+			char hashTemp4[5];
+			draw_hex((uint32_t)cpu.CRE, 2, hashTemp4);
+			strcat(adMsg, hashTemp4);
+			strcat(adMsg, "]");
+			
+			int adMsgX = 800 + (int)(200 - (strlen(adMsg)*10)) / 2;
+			draw_string(display, window, gc, 0xFFFFFF, adMsgX, 120, adMsg);
+		
+		//internal registers
+			char irMsg[50] = "IR1-[";
+			char hashTemp5[5];
+			draw_hex((uint32_t)cpu.IR1, 2, hashTemp5);
+			strcat(irMsg, hashTemp5);
+			
+			strcat(irMsg, "] IR2-[");
+			char hashTemp6[5];
+			draw_hex((uint32_t)cpu.IR2, 2, hashTemp6);
+			strcat(irMsg, hashTemp6);
+			strcat(irMsg, "]");
+			
+			int irMsgX = 800 + (int)(200 - (strlen(irMsg)*10)) / 2;
+			draw_string(display, window, gc, 0xFFFFFF, irMsgX, 150, irMsg);
+		
+		//addressable registers
+			char arMsg[50] = "AR0-[";
+			char hashTemp7[5];
+			draw_hex((uint32_t)cpu.AR0, 2, hashTemp7);
+			strcat(arMsg, hashTemp7);
+			
+			strcat(arMsg, "] AR2-[");
+			char hashTemp8[5];
+			draw_hex((uint32_t)cpu.AR1, 2, hashTemp8);
+			strcat(arMsg, hashTemp8);
+			strcat(arMsg, "]");
+			
+			int arMsgX = 800 + (int)(200 - (strlen(arMsg)*10)) / 2;
+			draw_string(display, window, gc, 0xFFFFFF, arMsgX, 180, arMsg);
+			
+			char arMsg2[50] = "AR0-[";
+			char hashTemp9[5];
+			draw_hex((uint32_t)cpu.AR2, 2, hashTemp9);
+			strcat(arMsg2, hashTemp9);
+			strcat(arMsg2, "]");
+			int arMsg2X = 800 + (int)(200 - (strlen(arMsg2)*10)) / 2;
+			draw_string(display, window, gc, 0xFFFFFF, arMsg2X, 210, arMsg2);
+			
+			char flagMsg[50] = " ";
+			if(cpu.C == true){
+				strcat(flagMsg, "C:1 ");
+			} else {
+				strcat(flagMsg, "C:0 ");
+			}
+			
+			if(cpu.Z == true){
+				strcat(flagMsg, "Z:1 ");
+			} else {
+				strcat(flagMsg, "Z:0 ");
+			}
+			
+			if(cpu.S == true){
+				strcat(flagMsg, "S:1 ");
+			} else {
+				strcat(flagMsg, "S:0 ");
+			}
+			
+			int flagMsgX = 800 + (int)(200 - (strlen(flagMsg)*10)) / 2;
+			draw_string(display, window, gc, 0xFFFFFF, flagMsgX, 240, flagMsg);
+	
+	}
+	
 /**
 * Draw the contents of memory in a matrix of set height and width
 * @return void
 */
-	void draw_ram(Display * display, Window window, GC gc)
-	{
+	void draw_ram(Display * display, Window window, GC gc){
 	
 		uint8_t nAddr = 0x00;
 		
@@ -124,7 +227,7 @@
 							strcat(line, hashTemp2);
 						}
 						
-						if(nAddr == cpu.PC-1 && cpu.PC-1 >= PROG_MEM_LOC){
+						if(nAddr == cpu.PCO-1 && cpu.PCO-1 >= PROG_MEM_LOC){
 							pcCol = col;
 							pcY = y;
 							pcVal = cpu.RAM[nAddr];
@@ -164,38 +267,34 @@
 			}
 			
 		//draw locations AFTER the above, so it's atop it
-			if(cpu.PC-1 >= PROG_MEM_LOC){
-		
-				//PC Hex value
-					pcX = 70 + (pcCol*30) + ((pcCol >= 8) ? 20 : 0);
-					
-					char pcLine[50] = " ";
-					
-					if(pcVal == 0){
-						strcat(pcLine, "00");
-					} else {
-						char hashTemp2[4];
-						draw_hex(pcVal, 2, hashTemp2);
-						strcat(pcLine, hashTemp2);
-					}
-					
-					draw_string(display, window, gc, 0xff5100, pcX, pcY, pcLine);
-					
-				//now highlight ascii output
-					pcX = 590 + (pcCol*10) + ((pcCol >= 8) ? 10 : 0);
-					
-					char asciiLine[50] = " ";
-					if (pcVal >= ' ' && pcVal <= '~'){
-						char c[10] = " ";
-						snprintf(c, 2, "%c",  pcVal);
-						strcat(asciiLine,c);
-					} else {
-						strcat(asciiLine,".");
-					}
-					
-					draw_string(display, window, gc, 0xff5100, pcX, pcY, asciiLine);
-					
+		//PC Hex value
+			pcX = 70 + (pcCol*30) + ((pcCol >= 8) ? 20 : 0);
+			
+			char pcLine[50] = " ";
+			
+			if(pcVal == 0){
+				strcat(pcLine, "00");
+			} else {
+				char hashTemp2[4];
+				draw_hex(pcVal, 2, hashTemp2);
+				strcat(pcLine, hashTemp2);
 			}
+			
+			draw_string(display, window, gc, 0xff5100, pcX, pcY, pcLine);
+			
+		//now highlight ascii output
+			pcX = 590 + (pcCol*10) + ((pcCol >= 8) ? 10 : 0);
+			
+			char asciiLine[50] = " ";
+			if (pcVal >= ' ' && pcVal <= '~'){
+				char c[10] = " ";
+				snprintf(c, 2, "%c",  pcVal);
+				strcat(asciiLine,c);
+			} else {
+				strcat(asciiLine,".");
+			}
+			
+			draw_string(display, window, gc, 0xff5100, pcX, pcY, asciiLine);
 		
 	}
 
@@ -203,11 +302,10 @@
 	
 		XClearWindow(display, window);
 		draw_ram(display, window, gc);
+		draw_cpu(display, window, gc);
 		
 		char * msg = "Press Space to sep through CPU Cycles. Press Q to quit or R to reset system.";
-		
 		int msgX = (int)(1000 - (strlen(msg)*10)) / 2;
-	
 		draw_string(display, window, gc, 0xFFFFFF, msgX, 600, msg);
 	
 	}
