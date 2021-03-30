@@ -2,11 +2,14 @@
 
 int main(void){
 
+	printf("4c04 L EOT CPU Emulator\n");
+	printf("System Booting...\n");
+
 	system_restart();
 	
 	sleep(1);
 	
-	printf("system restarted \n");
+	printf("Opening Window...\n");
 	
 	Display *display;
 	Window window;

@@ -304,7 +304,7 @@
 		draw_ram(display, window, gc);
 		draw_cpu(display, window, gc);
 		
-		char * msg = "Press Space to sep through CPU Cycles. Press Q to quit or R to reset system.";
+		char * msg = "Press Space to step through CPU Cycles. Press Q to quit or R to reset system.";
 		int msgX = (int)(1000 - (strlen(msg)*10)) / 2;
 		draw_string(display, window, gc, 0xFFFFFF, msgX, 600, msg);
 	
