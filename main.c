@@ -1,9 +1,12 @@
 #include "main.h"
-#include <X11/Xlib.h>
 
+int main(void){
 
-int main(void) {
+	system_restart();
+	draw_ram();
+	printf("system restarted \n");
 
+	/*
    Display *d;
    Window w;
    XEvent e;
@@ -32,7 +35,7 @@ int main(void) {
          break;
    }
  
-   XCloseDisplay(d);
+   XCloseDisplay(d);*/
    return 0;
    
 }
