@@ -7,23 +7,30 @@
 /**
 * Instruction opcode lookup table
 */
-	INSTRUCTION instructions[16] = {
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0x0000
-		{LDR, "LDR", "Load Register, Immediate", &cpu_ins_LRR, &cpu_am_AMI, 0},      //0x0001
-		{LDR, "LDR", "Load Register, Memory", &cpu_ins_LRR, &cpu_am_AMM, 0},         //0x0002
-		{STR, "STR", "Store Register, Immediate", &cpu_ins_STR, &cpu_am_AMI, 0},     //0x0003
-		{ADD, "ADD", "Add, Immediate", &cpu_ins_ADD, &cpu_am_AMI, 2},                //0x0004
-		{SUB, "SUB", "Subtract, Immediate", &cpu_ins_NOP, &cpu_am_AMI, 2},           //0x0005
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0x0006
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0x0007
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0x0008
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0x0009
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0x000a
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0x000b
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0x000c
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0x000d
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0x000e
-		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0}                   //0x000f
+	INSTRUCTION instructions[32] = {
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //00
+		{LDR, "LDR", "Load Register, Immediate", &cpu_ins_LRR, &cpu_am_AMI, 0},      //01 [#reg0-2] [#val]
+		{LDR, "LDR", "Load Register, Memory", &cpu_ins_LRR, &cpu_am_AMM, 0},         //02 [#reg0-2] [$mem]
+		{LDR, "LDR", "Load Register, At Register", &cpu_ins_LRR, &cpu_am_AMR, 0},    //03 [#reg0-2] [#reg0-2]
+		
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //04
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //05
+		
+		{STR, "STR", "Store Register, Immediate", &cpu_ins_STR, &cpu_am_AMI, 0},     //06 [#reg0-2] [$mem]
+		{NOP, "STR", "Store Register, Memory", &cpu_ins_NOP, &cpu_am_AMM, 0},        //07 [#reg0-2] [#reg0-2] Stores first reg in mem loc of second reg
+		
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //08
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //09
+		
+		{NOP, "BMP", "Bump Register, Immediate", &cpu_ins_BMP, &cpu_am_AMI, 1},      //0a [#reg0-2]++
+		{NOP, "SQW", "Squash Register, Immediate", &cpu_ins_NOP, &cpu_am_AMN, 0},    //0b [#reg0-2]--
+		
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0c
+		{NOP, "NOP", "No Operation", &cpu_ins_NOP, &cpu_am_AMN, 0},                  //0d
+		
+		{ADD, "ADD", "Add, Immediate", &cpu_ins_ADD, &cpu_am_AMI, 2},                //0e [#reg0-2] [#reg0-2] Stores in first reg defined
+		{SUB, "SUB", "Subtract, Immediate", &cpu_ins_NOP, &cpu_am_AMI, 2},           //0f [#reg0-2] [#reg0-2] Stores in first reg defined
+		{NOP, "JMP", "Jump, Immediate", &cpu_ins_NOP, &cpu_am_AMN, 0},               //10 [$mem]
 	};
 	
 /*
@@ -33,13 +40,10 @@
 * @return void
 */
 	void cpu_set_draw_flag(DRAWFLAGS f, bool v){
-	
-		if(v){
+		if(v)
 			drawflags |= f;
-		} else {
+		else
 			drawflags &= ~f;
-		}
-	
 	}
 	
 /**
@@ -55,9 +59,11 @@
 * @param uint8_t addr
 * @return uint8_t
 */
-	uint8_t cpu_read(uint8_t addr){
-		cpu.PCO++;
-		cpu_set_draw_flag(PCO, true);
+	uint8_t cpu_read(uint8_t addr, bool incPCO){
+		if(incPCO){
+			cpu.PCO++;
+			cpu_set_draw_flag(PCO, true);
+		}
 		return cpu.RAM[addr];
 	}
 	
@@ -68,8 +74,6 @@
 * @return void
 */
 	void cpu_write(uint8_t addr, uint8_t data){
-		cpu.PCO++;
-		cpu_set_draw_flag(PCO, true);
 		cpu.RAM[addr] = data;
 	}
 	
@@ -80,41 +84,37 @@
 	* CPU Address mode: None
 	* @return uint8_t
 	*/
-		uint8_t cpu_am_AMN(){
-			cpu.ADM = NoAddress;
-			return 1;
-		}
+		uint8_t cpu_am_AMN(){ cpu.ADM = NoAddress; return 1; }
 		
 	/*
 	* CPU Address mode: Immediate
 	* Use the VALUE in the next byte
 	* @return uint8_t
 	*/
-		uint8_t cpu_am_AMI(){
-			cpu.ADM = Immediate;
-			return 3;
-		}
+		uint8_t cpu_am_AMI(){ cpu.ADM = Immediate; return 3; }
 		
 	/*
 	* CPU Address mode: Memory
 	* Use the value of the MEMORY ADDRESS in the next byte
 	* @return uint8_t
 	*/
-		uint8_t cpu_am_AMM(){
-			cpu.ADM = Memory;
-			return 4;
-		}
+		uint8_t cpu_am_AMM(){ cpu.ADM = Memory; return 4; }
+		
+	/*
+	* CPU Address mode: At Register
+	* Use the value of the Register in the next byte as the mem loc
+	* @return uint8_t
+	*/
+		uint8_t cpu_am_AMR(){ cpu.ADM = AtRegister; return 4; }
 		
 ////////////////////////////////////////////////////////////////////////////////////////
-//INSTRUCTIONS MODES
+//INSTRUCTIONS
 
 /*
 * Instruction: No Operation
 * @return void
 */
 	void cpu_ins_NOP(){
-		//execute NOP
-			return;
 	}
 	
 /*
@@ -132,13 +132,60 @@
 			
 				//load IR1 with the identifier for which register to finally load
 					case 3:
-						cpu.IR1 = cpu_read(cpu.PCO);
+						cpu.IR1 = cpu_read(cpu.PCO, true);
 						cpu_set_draw_flag(IR1, true);
 					break;
 					
 				//load IR2 with the value at mem location
 					case 2:
-						cpu.IR2 = cpu_read(cpu.PCO);
+						cpu.IR2 = cpu_read(cpu.PCO, true);
+						cpu_set_draw_flag(IR2, true);
+					break;
+					
+				//load the value at IR2 into register chosen in IR1
+					case 1: {
+					
+						switch(cpu.IR1){
+							
+							case 0:
+							default:
+								cpu.AR0 = cpu.IR2;
+								cpu_set_draw_flag(AR0, true);
+							break;
+							case 1:
+								cpu.AR1 = cpu.IR2;
+								cpu_set_draw_flag(AR1, true);
+							break;
+							case 2:
+								cpu.AR2 = cpu.IR2;
+								cpu_set_draw_flag(AR2, true);
+							break;
+							
+						}
+					
+					} break;
+			
+			}
+		
+		} else if (cpu.ADM == Memory) {
+		
+			switch(cpu.CRE){
+			
+				//load IR1 with the identifier for which register to finally load
+					case 4:
+						cpu.IR1 = cpu_read(cpu.PCO, true);
+						cpu_set_draw_flag(IR1, true);
+					break;
+					
+				//load IR2 with the mem address for the value
+					case 3:
+						cpu.IR2 = cpu_read(cpu.PCO, true);
+						cpu_set_draw_flag(IR2, true);
+					break;
+					
+				//load the value stored at mem location in IR2 into IR2
+					case 2:
+						cpu.IR2 = cpu_read(cpu.IR2, false);
 						cpu_set_draw_flag(IR2, true);
 					break;
 					
@@ -173,20 +220,39 @@
 			
 				//load IR1 with the identifier for which register to finally load
 					case 4:
-						cpu.IR1 = cpu_read(cpu.PCO);
+						cpu.IR1 = cpu_read(cpu.PCO, true);
 						cpu_set_draw_flag(IR1, true);
 					break;
 					
-				//load IR2 with the mem address for the value
-					case 3:
-						cpu.IR2 = cpu_read(cpu.PCO);
-						cpu_set_draw_flag(IR2, true);
-					break;
+				//Set IR2 to be the reigster to take the mem loc from
+					case 3: {
 					
-				//load the value stored at mem location in IR2 into IR2
-					case 2:
-						cpu.IR2 = cpu_read(cpu.IR2);
+						cpu.IR2 = cpu_read(cpu.PCO, true);
 						cpu_set_draw_flag(IR2, true);
+					
+					} break;
+					
+				//set IR2 to be the value of the register set in IR2
+					case 2: {
+					
+						switch(cpu.IR2){
+							
+							case 0:
+							default:
+								cpu.IR2 = cpu.AR0;
+							break;
+							case 1:
+								cpu.IR2 = cpu.AR1;
+							break;
+							case 2:
+								cpu.IR2 = cpu.AR2;
+							break;
+							
+						}
+						
+						cpu_set_draw_flag(IR2, true);
+					
+					}
 					break;
 					
 				//load the value at IR2 into register chosen in IR1
@@ -196,15 +262,15 @@
 							
 							case 0:
 							default:
-								cpu.AR0 = cpu.IR2;
+								cpu.AR0 = cpu_read(cpu.IR2, false);
 								cpu_set_draw_flag(AR0, true);
 							break;
 							case 1:
-								cpu.AR1 = cpu.IR2;
+								cpu.AR1 = cpu_read(cpu.IR2, false);
 								cpu_set_draw_flag(AR1, true);
 							break;
 							case 2:
-								cpu.AR2 = cpu.IR2;
+								cpu.AR2 = cpu_read(cpu.IR2, false);
 								cpu_set_draw_flag(AR2, true);
 							break;
 							
@@ -231,34 +297,110 @@
 		
 			//load IR1 with the identifier for which register to finally load
 				case 3:
-					cpu.IR1 = cpu_read(cpu.PCO);
+					cpu.IR1 = cpu_read(cpu.PCO, true);
 					cpu_set_draw_flag(IR1, true);
 				break;
 				
 			//load IR2 with address of the destination memory location
 				case 2:
-					cpu.IR2 = cpu_read(cpu.PCO);
+					cpu.IR2 = cpu_read(cpu.PCO, true);
 					cpu_set_draw_flag(IR2, true);
 				break;
 				
-			//load the value at IR2 into register chosen in IR1
-				case 1: {
+			//store the value in the register chosen at IR1 into mem location IR2
+				case 1:{
+					switch(cpu.IR1){
+						case 0:
+						default:
+							cpu_write(cpu.IR2, cpu.AR0);
+						break;
+						case 1:
+							cpu_write(cpu.IR2, cpu.AR1);
+						break;
+						case 2:
+							cpu_write(cpu.IR2, cpu.AR2);
+						break;
+					}
+				} break;
+		
+		}
+	
+	}
+	
+/*
+* Instruction: Bump (Increment) value in register
+* NoAddress: n/a
+* Immediate: 3 cycles
+* Memory: n/a
+* @return void
+*/
+	void cpu_ins_BMP(){
+	
+		switch(cpu.CRE){
+		
+			//load IR1 with the identifier for which register to bump
+				case 4:
+					cpu.IR1 = cpu_read(cpu.PCO, true);
+					cpu_set_draw_flag(IR1, true);
+				break;
+				
+			//set IR2 to be the value of the register set in IR2
+				case 3: {
 				
 					switch(cpu.IR1){
 						
 						case 0:
 						default:
-							cpu_write(cpu.AR0, cpu.IR2);
+							cpu.IR2 = cpu.AR0;
 						break;
 						case 1:
-							cpu_write(cpu.AR1, cpu.IR2);
+							cpu.IR2 = cpu.AR1;
 						break;
 						case 2:
-							cpu_write(cpu.AR2, cpu.IR2);
+							cpu.IR2 = cpu.AR2;
 						break;
 						
 					}
+					
+					cpu_set_draw_flag(IR2, true);
 				
+				}
+				break;
+				
+			//do bump
+				case 2:
+					cpu.IR2++;
+				break;
+				
+			//store the value in the register chosen at IR1 from IR2
+				case 1:{
+					
+					uint8_t temp = cpu.IR2;
+				
+					switch(cpu.IR1){
+						case 0:
+						default:
+							cpu.AR0 = cpu.IR2;
+							cpu_set_draw_flag(AR0, true);
+						break;
+						case 1:
+							cpu.AR1 = cpu.IR2;
+							cpu_set_draw_flag(AR1, true);
+						break;
+						case 2:
+							cpu.AR2 = cpu.IR2;
+							cpu_set_draw_flag(AR2, true);
+						break;
+					}
+					
+					//set flags
+						//overflowed?
+						cpu.V = (temp == 0);
+						//now zero?
+						cpu.Z = (temp == 0);
+						//negative?
+						cpu.N = (temp & 0x80);
+					
 				} break;
 		
 		}
@@ -278,13 +420,13 @@
 		
 			//load IR1 with the identifier for which register to add and store answer in
 				case 5:
-					cpu.IR1 = cpu_read(cpu.PCO);
+					cpu.IR1 = cpu_read(cpu.PCO, true);
 					cpu_set_draw_flag(IR1, true);
 				break;
 				
 			//load IR2 with the identifier for which other register to add
 				case 4:
-					cpu.IR2 = cpu_read(cpu.PCO);
+					cpu.IR2 = cpu_read(cpu.PCO, true);
 					cpu_set_draw_flag(IR2, true);
 				break;
 				
@@ -409,6 +551,8 @@
 				int bytes = 0;
 				uint8_t nOffset = PROG_MEM_LOC;
 				
+				bool comment = false;
+				
 				int i = 1;
 				while(1){
 					
@@ -418,6 +562,19 @@
 					//check if end of file or end of memory now
 						if(feof(fp) || bytes > 128){
 							break;
+						}
+						
+					//see if we got comment
+						if(c == ';'){
+							comment = true;
+							continue;
+						}
+						
+						if(comment){
+							if(c == '\n'){
+								comment = false;
+							}
+							continue;
 						}
 			
 					//check this char is in valid hex char set
@@ -530,7 +687,7 @@
 				cpu.lastOpAddr = cpu.PCO;
 		
 			//read next instruction
-				cpu.IR1 = cpu_read(cpu.PCO);
+				cpu.IR1 = cpu_read(cpu.PCO, true);
 				cpu_set_draw_flag(IR1, true);
 				//@1
 				cpu.INS = instructions[cpu.IR1];

@@ -9,7 +9,8 @@
 typedef enum  {
 	NoAddress,
 	Immediate,
-	Memory
+	Memory,
+	AtRegister
 } ADRESS_MODE;
 
 //bit field for cpu status
@@ -46,7 +47,7 @@ typedef struct{
 	uint8_t cycles;
 } INSTRUCTION;
 
-extern INSTRUCTION instructions[16];
+extern INSTRUCTION instructions[32];
 
 typedef struct{
 
@@ -104,11 +105,13 @@ extern CPU cpu;
 	uint8_t cpu_am_AMN();
 	uint8_t cpu_am_AMI();
 	uint8_t cpu_am_AMM();
+	uint8_t cpu_am_AMR();
 	
 //Instructions
 	void cpu_ins_NOP();
 	void cpu_ins_LRR();
 	void cpu_ins_STR();
+	void cpu_ins_BMP();
 	void cpu_ins_ADD();
 	
 	void system_restart();

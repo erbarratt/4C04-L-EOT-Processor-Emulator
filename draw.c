@@ -67,13 +67,13 @@ char code[MEM_LENGTH][100];
 	void draw_cpu(Display * display, Window window, GC gc){
 	
 		char * msg = "CPU Status";
-		int msgX = 790 + (int)(200 - (strlen(msg)*10)) / 2;
+		int msgX = 780 + (int)(200 - (strlen(msg)*10)) / 2;
 		draw_string(display, window, gc, 0x28d9ed, msgX, 30, msg);
 		
 		//instruction name
 			char arMsg3[100] = "Instruction: ";
 			strcat(arMsg3, instructions[cpu.OPC].name);
-			int arMsg3X = 790 + (int)(200 - (strlen(arMsg3)*10)) / 2;
+			int arMsg3X = 780 + (int)(200 - (strlen(arMsg3)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, arMsg3X, 60, arMsg3);
 		
 		//PCO and OPcode
@@ -88,7 +88,7 @@ char code[MEM_LENGTH][100];
 			strcat(pcMsg, hashTemp2);
 			strcat(pcMsg, "]");
 			
-			int pcMsgX = 790 + (int)(200 - (strlen(pcMsg)*10)) / 2; //805
+			int pcMsgX = 780 + (int)(200 - (strlen(pcMsg)*10)) / 2; //805
 			draw_string(display, window, gc, 0xFFFFFF, pcMsgX, 90, pcMsg);
 		
 		//Adress mode and Cycles Remaining
@@ -103,7 +103,7 @@ char code[MEM_LENGTH][100];
 			strcat(adMsg, hashTemp4);
 			strcat(adMsg, "]");
 			
-			int adMsgX = 790 + (int)(200 - (strlen(adMsg)*10)) / 2;
+			int adMsgX = 780 + (int)(200 - (strlen(adMsg)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, adMsgX, 120, adMsg);
 		
 		//internal registers
@@ -118,7 +118,7 @@ char code[MEM_LENGTH][100];
 			strcat(irMsg, hashTemp6);
 			strcat(irMsg, "]");
 			
-			int irMsgX = 790 + (int)(200 - (strlen(irMsg)*10)) / 2;
+			int irMsgX = 780 + (int)(200 - (strlen(irMsg)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, irMsgX, 150, irMsg);
 		
 		//addressable registers
@@ -133,7 +133,7 @@ char code[MEM_LENGTH][100];
 			strcat(arMsg, hashTemp8);
 			strcat(arMsg, "]");
 			
-			int arMsgX = 790 + (int)(200 - (strlen(arMsg)*10)) / 2;
+			int arMsgX = 780 + (int)(200 - (strlen(arMsg)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, arMsgX, 180, arMsg);
 			
 			char arMsg2[50] = "AR2-[";
@@ -141,7 +141,7 @@ char code[MEM_LENGTH][100];
 			draw_hex((uint32_t)cpu.AR2, 2, hashTemp9);
 			strcat(arMsg2, hashTemp9);
 			strcat(arMsg2, "]");
-			int arMsg2X = 790 + (int)(200 - (strlen(arMsg2)*10)) / 2;
+			int arMsg2X = 780 + (int)(200 - (strlen(arMsg2)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, arMsg2X, 210, arMsg2);
 			
 		//drawflags to highlight current things
@@ -154,7 +154,7 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.PCO, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 805, 90, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 795, 90, hpcMsg);
 				
 				}
 				
@@ -166,7 +166,7 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.OPC, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 895, 90, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 885, 90, hpcMsg);
 				
 				}
 				
@@ -178,7 +178,7 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.ADM, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 805, 120, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 795, 120, hpcMsg);
 				
 				}
 				
@@ -189,7 +189,7 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.CRE, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 895, 120, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 885, 120, hpcMsg);
 				}
 				
 			//IR1
@@ -200,7 +200,7 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.IR1, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 805, 150, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 795, 150, hpcMsg);
 				
 				}
 				
@@ -211,7 +211,7 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.IR2, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 895, 150, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 885, 150, hpcMsg);
 				}
 				
 			//AR0
@@ -222,7 +222,7 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.AR0, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 805, 180, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 795, 180, hpcMsg);
 				
 				}
 				
@@ -233,7 +233,7 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.AR1, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 895, 180, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 885, 180, hpcMsg);
 				}
 				
 			//AR2
@@ -243,32 +243,32 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.AR2, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 850, 210, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 840, 210, hpcMsg);
 				}
 				
 			//cpu status flags
 				if(cpu.C == true){
-					draw_string(display, window, gc, 0x22d816, 815, 240, "C:1");
+					draw_string(display, window, gc, 0x22d816, 805, 240, "C:1");
 				} else {
-					draw_string(display, window, gc, 0xd81616, 815, 240, "C:0");
+					draw_string(display, window, gc, 0xd81616, 805, 240, "C:0");
 				}
 				
 				if(cpu.Z == true){
-					draw_string(display, window, gc, 0x22d816, 855, 240, "Z:1");
+					draw_string(display, window, gc, 0x22d816, 845, 240, "Z:1");
 				} else {
-					draw_string(display, window, gc, 0xd81616, 855, 240, "Z:0");
+					draw_string(display, window, gc, 0xd81616, 845, 240, "Z:0");
 				}
 				
 				if(cpu.V == true){
-					draw_string(display, window, gc, 0x22d816, 895, 240, "V:1");
+					draw_string(display, window, gc, 0x22d816, 885, 240, "V:1");
 				} else {
-					draw_string(display, window, gc, 0xd81616, 895, 240, "V:0");
+					draw_string(display, window, gc, 0xd81616, 885, 240, "V:0");
 				}
 				
 				if(cpu.N == true){
-					draw_string(display, window, gc, 0x22d816, 935, 240, "N:1");
+					draw_string(display, window, gc, 0x22d816, 925, 240, "N:1");
 				} else {
-					draw_string(display, window, gc, 0xd81616, 935, 240, "N:0");
+					draw_string(display, window, gc, 0xd81616, 925, 240, "N:0");
 				}
 	
 	}
@@ -290,7 +290,7 @@ char code[MEM_LENGTH][100];
 		uint8_t pcVal = 0;
 		
 		//draw mem table header in cyan
-			char topLine[120] = "    ";
+			char topLine[120] = " RAM";
 			
 			for (int col = 0; col < 16; col++){
 			
@@ -309,6 +309,8 @@ char code[MEM_LENGTH][100];
 				
 			}
 			
+			strcat(topLine, "  HEX");
+			
 			draw_string(display, window, gc, 0x28d9ed, 10, y, topLine);
 			
 		//now draw bulk
@@ -322,7 +324,7 @@ char code[MEM_LENGTH][100];
 						y += 30;
 						
 						//draw mem table header in cyan
-						char topLine2[120] = "    ";
+						char topLine2[120] = " ROM";
 						
 						for (int col = 0; col < 16; col++){
 						
@@ -341,6 +343,7 @@ char code[MEM_LENGTH][100];
 							
 						}
 						
+						strcat(topLine2, "  HEX");
 						draw_string(display, window, gc, 0x28d9ed, 10, y, topLine2);
 						
 						y += 30;
@@ -453,7 +456,7 @@ char code[MEM_LENGTH][100];
 	void draw_code(Display * display, Window window, GC gc, uint8_t addr){
 	
 		char * msg = "Code Lines";
-		int msgX = 790 + (int)(200 - (strlen(msg)*10)) / 2;
+		int msgX = 780 + (int)(200 - (strlen(msg)*10)) / 2;
 		draw_string(display, window, gc, 0x28d9ed, msgX, 330, msg);
 	
 		char lines[8][100];
@@ -510,7 +513,7 @@ char code[MEM_LENGTH][100];
 		//finally now we have full lines, output them highlighting current instruction
 			for(int i = 0; i < 8; i++){
 			
-				int lineX = 790 + (int)(200 - (strlen(lines[i])*10)) / 2;
+				int lineX = 780 + (int)(200 - (strlen(lines[i])*10)) / 2;
 				int lineY = (12*30) + (i*30);
 			
 				if(i == midPoint){
@@ -571,9 +574,12 @@ char code[MEM_LENGTH][100];
 			addr++;
 			
 			if(instructions[opcode].addrmode == &cpu_am_AMN){
+			
 				strcpy(code[addr], "---");
 				strcat(line, " {AMN}");
+				
 			} else if(instructions[opcode].addrmode == &cpu_am_AMI){
+			
 				strcpy(code[addr], "---");
 				strcat(line, " {AMI}");
 				addr++;
@@ -581,12 +587,21 @@ char code[MEM_LENGTH][100];
 				addr++;
 			
 			} else if(instructions[opcode].addrmode == &cpu_am_AMM){
+			
 				strcpy(code[addr], "---");
 				strcat(line, " {AMM}");
 				addr++;
 				strcpy(code[addr], "---");
 				addr++;
 			
+			} else if(instructions[opcode].addrmode == &cpu_am_AMR){
+			
+				strcpy(code[addr], "---");
+				strcat(line, " {AMR}");
+				addr++;
+				strcpy(code[addr], "---");
+				addr++;
+				
 			}
 			
 			strcpy(code[lineAddr], line);
