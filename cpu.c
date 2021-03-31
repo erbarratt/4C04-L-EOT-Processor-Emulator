@@ -38,6 +38,8 @@
 		{"JMP", "Jump, from Value",                    &cpu_ins_JMP, 2},       //12 [$mem]
 		{"JNE", "Jump if Zero not set",                &cpu_ins_JNE, 2},       //13 [$mem]
 		{"JZS", "Jump if Zero set",                    &cpu_ins_JZS, 2},       //14 [$mem]
+		{"JSR", "Jump to Subroutine",                  &cpu_ins_JSR, 3},       //15 [$mem]
+		{"RFS", "Return from Subroutine",              &cpu_ins_RFS, 2},       //16
 	};
 	
 /*
@@ -83,7 +85,31 @@
 	void cpu_write(uint8_t addr, uint8_t data){
 		cpu.RAM[addr] = data;
 	}
-		
+	
+/*
+* Write a byte to the top of the stack
+* @param uint8_t data
+* @return void
+*/
+	void cpu_stack_push(uint8_t data){
+		cpu_write(cpu.STP, data);
+		cpu.STP--;
+		cpu_set_draw_flag(STP, true);
+	}
+	
+/*
+* Read a byte from the top of the stack
+* @return uint8_t
+*/
+	uint8_t cpu_stack_pop(){
+		cpu.STP++;
+		uint8_t data = cpu.RAM[cpu.STP];
+		cpu_set_draw_flag(STP, true);
+		return data;
+	}
+	
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 //INSTRUCTIONS
 
@@ -759,7 +785,7 @@
 					cpu_set_draw_flag(IR1, true);
 				break;
 				
-			//load IR2 with address of the destination memory location
+			//Set PCO on condition
 				case 1:{
 				
 					//only set PCO if zero flag not set
@@ -789,7 +815,7 @@
 					cpu_set_draw_flag(IR1, true);
 				break;
 				
-			//load IR2 with address of the destination memory location
+			//Set PCO on condition
 				case 1:{
 				
 					//only set PCO if zero flag not set
@@ -804,6 +830,64 @@
 	
 	}
 	
+/*
+* Instruction: Jump to Subroutine
+* 3 cycles
+* @return void
+*/
+	void cpu_ins_JSR(){
+	
+		switch(cpu.CRE){
+		
+			//put the next mem location onto stack
+				case 3:
+					cpu_stack_push(cpu.PCO+1);
+				break;
+			
+			//load IR1 with memory address to jump to
+				case 2:
+					cpu.IR1 = cpu_read(cpu.PCO, true);
+					cpu_set_draw_flag(IR1, true);
+				break;
+				
+			//set new PCO
+				case 1:{
+					cpu.PCO = cpu.IR1;
+					cpu_set_draw_flag(PCO, true);
+				} break;
+		
+		}
+	
+	}
+	
+/*
+* Instruction: Return from Subroutine
+* 2 cycles
+* @return void
+*/
+	void cpu_ins_RFS(){
+	
+		switch(cpu.CRE){
+		
+			//Get the last mem loc from stack
+				case 2:
+					cpu.IR1 = cpu_stack_pop();
+					cpu_set_draw_flag(IR1, true);
+				break;
+				
+			//set new PCO
+				case 1:{
+					cpu.PCO = cpu.IR1;
+					cpu_set_draw_flag(PCO, true);
+				} break;
+		
+		}
+	
+	}
+	
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 //CPU STATE FUNCTIONS
 
@@ -818,117 +902,117 @@
 				cpu.RAM[i] = 0x00;
 			}
 			
-		//load program into program memory
-			FILE * fp;
-			
-			fp = fopen("prog.txt", "r");
-			
-			if (fp == NULL){
-				printf("No Program File\n");
-				exit(1);
-			}
-			
-			//holding vars
-				uint8_t c, new, tmp;
-				uint8_t hi = 0x00;
-				uint8_t lo;
-				
-				int bytes = 0;
-				uint8_t nOffset = PROG_MEM_LOC;
-				
-				bool comment = false;
-				
-				int i = 1;
-				while(1){
-					
-					//get next char
-						c = (uint8_t)fgetc(fp);
-			
-					//check if end of file or end of memory now
-						if(feof(fp) || bytes > 128){
-							break;
-						}
-						
-					//see if we got comment
-						if(c == ';'){
-							comment = true;
-							continue;
-						}
-						
-						if(comment){
-							if(c == '\n'){
-								comment = false;
-							}
-							continue;
-						}
-			
-					//check this char is in valid hex char set
-					if(
-						c != 'a' &&
-						c != 'A' &&
-						c != 'b' &&
-						c != 'B' &&
-						c != 'c' &&
-						c != 'C' &&
-						c != 'd' &&
-						c != 'D' &&
-						c != 'e' &&
-						c != 'E' &&
-						c != 'f' &&
-						c != 'F' &&
-						c != '0' &&
-						c != '1' &&
-						c != '2' &&
-						c != '3' &&
-						c != '4' &&
-						c != '5' &&
-						c != '6' &&
-						c != '7' &&
-						c != '8' &&
-						c != '9'
-					){
-						continue;
-					}
-			
-					//lookup 8 bit value of hex character to store in tmp
-						switch(c){
-							case '1': tmp = 0x01; break;
-							case '2': tmp = 0x02; break;
-							case '3': tmp = 0x03; break;
-							case '4': tmp = 0x04; break;
-							case '5': tmp = 0x05; break;
-							case '6': tmp = 0x06; break;
-							case '7': tmp = 0x07; break;
-							case '8': tmp = 0x08; break;
-							case '9': tmp = 0x09; break;
-							case 'a': case 'A': tmp = 0x0A; break;
-							case 'b': case 'B': tmp = 0x0B; break;
-							case 'c': case 'C': tmp = 0x0C; break;
-							case 'd': case 'D': tmp = 0x0D; break;
-							case 'e': case 'E': tmp = 0x0E; break;
-							case 'f': case 'F': tmp = 0x0F; break;
-							default: tmp = 0x00; break;
-						}
-			
-					//write only when hex built from both chars in txt file
-						if(i == 1){
-							i++;
-							hi = tmp;
-						} else {
-							lo = tmp;
-							i = 1;
-							
-							//new is hi bit shifted left by four, bitwise OR's with lo
-							//since lo always has 4 leading zeros, the hi 1 bits are always written (one OR the other bit is 1...)
-							new = (uint8_t)(hi << 4) | lo;
-							cpu.RAM[nOffset] = new;
-							nOffset++;
-							bytes++;
-						}
-			
-				}
-				
-				fclose(fp);
+		////load program into program memory
+		//	FILE * fp;
+		//
+		//	fp = fopen("prog.txt", "r");
+		//
+		//	if (fp == NULL){
+		//		printf("No Program File\n");
+		//		exit(1);
+		//	}
+		//
+		//	//holding vars
+		//		uint8_t c, new, tmp;
+		//		uint8_t hi = 0x00;
+		//		uint8_t lo;
+		//
+		//		int bytes = 0;
+		//		uint8_t nOffset = PROG_MEM_LOC;
+		//
+		//		bool comment = false;
+		//
+		//		int i = 1;
+		//		while(1){
+		//
+		//			//get next char
+		//				c = (uint8_t)fgetc(fp);
+		//
+		//			//check if end of file or end of memory now
+		//				if(feof(fp) || bytes > 128){
+		//					break;
+		//				}
+		//
+		//			//see if we got comment
+		//				if(c == ';'){
+		//					comment = true;
+		//					continue;
+		//				}
+		//
+		//				if(comment){
+		//					if(c == '\n'){
+		//						comment = false;
+		//					}
+		//					continue;
+		//				}
+		//
+		//			//check this char is in valid hex char set
+		//			if(
+		//				c != 'a' &&
+		//				c != 'A' &&
+		//				c != 'b' &&
+		//				c != 'B' &&
+		//				c != 'c' &&
+		//				c != 'C' &&
+		//				c != 'd' &&
+		//				c != 'D' &&
+		//				c != 'e' &&
+		//				c != 'E' &&
+		//				c != 'f' &&
+		//				c != 'F' &&
+		//				c != '0' &&
+		//				c != '1' &&
+		//				c != '2' &&
+		//				c != '3' &&
+		//				c != '4' &&
+		//				c != '5' &&
+		//				c != '6' &&
+		//				c != '7' &&
+		//				c != '8' &&
+		//				c != '9'
+		//			){
+		//				continue;
+		//			}
+		//
+		//			//lookup 8 bit value of hex character to store in tmp
+		//				switch(c){
+		//					case '1': tmp = 0x01; break;
+		//					case '2': tmp = 0x02; break;
+		//					case '3': tmp = 0x03; break;
+		//					case '4': tmp = 0x04; break;
+		//					case '5': tmp = 0x05; break;
+		//					case '6': tmp = 0x06; break;
+		//					case '7': tmp = 0x07; break;
+		//					case '8': tmp = 0x08; break;
+		//					case '9': tmp = 0x09; break;
+		//					case 'a': case 'A': tmp = 0x0A; break;
+		//					case 'b': case 'B': tmp = 0x0B; break;
+		//					case 'c': case 'C': tmp = 0x0C; break;
+		//					case 'd': case 'D': tmp = 0x0D; break;
+		//					case 'e': case 'E': tmp = 0x0E; break;
+		//					case 'f': case 'F': tmp = 0x0F; break;
+		//					default: tmp = 0x00; break;
+		//				}
+		//
+		//			//write only when hex built from both chars in txt file
+		//				if(i == 1){
+		//					i++;
+		//					hi = tmp;
+		//				} else {
+		//					lo = tmp;
+		//					i = 1;
+		//
+		//					//new is hi bit shifted left by four, bitwise OR's with lo
+		//					//since lo always has 4 leading zeros, the hi 1 bits are always written (one OR the other bit is 1...)
+		//					new = (uint8_t)(hi << 4) | lo;
+		//					cpu.RAM[nOffset] = new;
+		//					nOffset++;
+		//					bytes++;
+		//				}
+		//
+		//		}
+		//
+		//		fclose(fp);
 		
 		//internal registers
 			cpu.IR1 = 0x0000;
@@ -941,6 +1025,8 @@
 				//@1
 			cpu.AR2 = 0x00;
 				//@1
+			cpu.AR3 = 0x00;
+				//@1
 				
 		//flag bits
 			cpu.C = 0;
@@ -949,9 +1035,12 @@
 			cpu.N = 0;
 		
 		//reset program counter to start of program memory (ROM)
-			cpu.PCO = 0x80;
-			cpu.lastOpAddr = 0x80;
+			cpu.PCO = PROG_MEM_LOC;
+			cpu.lastOpAddr = PROG_MEM_LOC;
 				//@1
+				
+		//reset stack pointer to bottom of stack
+			cpu.STP = STACK_MEM_LOC;
 				
 		//set remaing cycles to 0, which indicates read new instruction
 			cpu.CRE = 0;

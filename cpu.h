@@ -5,6 +5,7 @@
 
 #define MEM_LENGTH 256
 #define PROG_MEM_LOC 0x80
+#define STACK_MEM_LOC 0x7F
 
 //bit field for cpu status
 	typedef enum
@@ -16,8 +17,9 @@
 		AR0 = (1 << 3),	// Addressable Reg 0
 		AR1 = (1 << 4),	// Addressable Reg 1
 		AR2 = (1 << 5),	// Addressable Reg 2
-		AR3 = (1 << 6),	// Current Opcode
+		AR3 = (1 << 6),	// Addressable Reg 3
 		OPC = (1 << 7),	// Current Opcode
+		STP = (1 << 8),	// Stack Pointer
 		
 	} DRAWFLAGS;
 
@@ -35,6 +37,9 @@ typedef struct{
 	//program counter
 		uint8_t PCO;
 		
+	//stack pointer
+		uint8_t STP;
+	
 	//current opcode
 		uint8_t OPC;
 		
@@ -97,6 +102,8 @@ extern CPU cpu;
 	void cpu_ins_JMP();
 	void cpu_ins_JNE();
 	void cpu_ins_JZS();
+	void cpu_ins_JSR();
+	void cpu_ins_RFS();
 	
 	void system_restart();
 	void cpu_execute();

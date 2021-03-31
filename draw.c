@@ -91,8 +91,13 @@ char code[MEM_LENGTH][100];
 			int pcMsgX = 780 + (int)(200 - (strlen(pcMsg)*10)) / 2; //805
 			draw_string(display, window, gc, 0xFFFFFF, pcMsgX, 90, pcMsg);
 		
-		//Adress mode and Cycles Remaining
-			char adMsg[50] = "CRE-[";
+		//Stack Pointer and Cycles Remaining
+			char adMsg[50] = "STP-[";
+			char hashTemp3[5];
+			draw_hex((uint32_t)cpu.STP, 2, hashTemp3);
+			strcat(adMsg, hashTemp3);
+			
+			strcat(adMsg, "] CRE-[");
 			char hashTemp4[5];
 			draw_hex((uint32_t)cpu.CRE, 2, hashTemp4);
 			strcat(adMsg, hashTemp4);
@@ -170,15 +175,28 @@ char code[MEM_LENGTH][100];
 				
 				}
 				
+			//STP
+				if(cpu_get_drawflag(STP) == 1){
+				
+					char hpcMsg[50] = "STP-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.STP, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 795, 120, hpcMsg);
+					
+				}
+				
 			//CRE
 				if(cpu.CRE > 0){
+				
 					char hpcMsg[50] = "CRE-[";
 					char hHashTemp[5];
 					draw_hex((uint32_t)cpu.CRE, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					int hpcMsgX = 780 + (int)(200 - (strlen(hpcMsg)*10)) / 2;
-					draw_string(display, window, gc, 0xFF00E8, hpcMsgX, 120, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 885, 120, hpcMsg);
+					
 				}
 				
 			//IR1

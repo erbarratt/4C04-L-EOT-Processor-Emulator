@@ -5,3 +5,5 @@
 
 #include "cpu.h"
 #include "draw.h"
+
+void program_load();
