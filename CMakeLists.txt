@@ -11,8 +11,7 @@ message(STATUS "X11_FOUND = ${X11_FOUND}")
 message(STATUS "X11_INCLUDE_DIR = ${X11_INCLUDE_DIR}")
 message(STATUS "X11_LIBRARIES = ${X11_LIBRARIES}")
 
-#link_libraries(${X11_LIBRARIES})
-include_directories(/usr/include)
+include_directories(${X11_INCLUDE_DIR})
 
 add_executable(
                4c04 main.c main.h cpu.h cpu.c draw.c draw.h)
