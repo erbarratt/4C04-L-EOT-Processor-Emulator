@@ -12,6 +12,23 @@ typedef enum  {
 	Memory
 } ADRESS_MODE;
 
+//bit field for cpu status
+	typedef enum
+	{
+	
+		PCO = (1 << 0),	// Program Counter
+		IR1 = (1 << 1),	// Internal Reg 1
+		IR2 = (1 << 2),	// Internal Reg 2
+		AR0 = (1 << 3),	// Addressable Reg 0
+		AR1 = (1 << 4),	// Addressable Reg 1
+		AR2 = (1 << 5),	// Addressable Reg 2
+		OPC = (1 << 6),	// Current Opcode
+		ADM = (1 << 7),	// Cycles Remaining
+		
+	} DRAWFLAGS;
+	
+extern DRAWFLAGS drawFlags;
+
 typedef enum  {
 	NOP, //execute nothing
 	LDR, //load following register with following
@@ -26,6 +43,7 @@ typedef struct{
 	char label[50];
 	void (*operate )(void);
 	uint8_t (*addrmode)(void);
+	uint8_t cycles;
 } INSTRUCTION;
 
 extern INSTRUCTION instructions[16];
@@ -73,6 +91,10 @@ typedef struct{
 
 extern CPU cpu;
 
+//cpu base functions
+	void cpu_set_draw_flag(DRAWFLAGS f, bool v);
+	uint8_t cpu_get_flag(DRAWFLAGS f);
+
 //Address modes
 	uint8_t cpu_am_AMN();
 	uint8_t cpu_am_AMI();
@@ -82,6 +104,7 @@ extern CPU cpu;
 	void cpu_ins_NOP();
 	void cpu_ins_LRR();
 	void cpu_ins_STR();
+	void cpu_ins_ADD();
 	
 	void system_restart();
 	void cpu_execute();

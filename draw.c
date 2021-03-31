@@ -56,13 +56,13 @@
 	void draw_cpu(Display * display, Window window, GC gc){
 	
 		char * msg = "CPU Status";
-		int msgX = 800 + (int)(200 - (strlen(msg)*10)) / 2;
+		int msgX = 790 + (int)(200 - (strlen(msg)*10)) / 2;
 		draw_string(display, window, gc, 0x28d9ed, msgX, 30, msg);
 		
 		//instruction name
 			char arMsg3[100] = "Instruction: ";
 			strcat(arMsg3, instructions[cpu.OPC].name);
-			int arMsg3X = 800 + (int)(200 - (strlen(arMsg3)*10)) / 2;
+			int arMsg3X = 790 + (int)(200 - (strlen(arMsg3)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, arMsg3X, 60, arMsg3);
 		
 		//PCO and OPcode
@@ -77,7 +77,7 @@
 			strcat(pcMsg, hashTemp2);
 			strcat(pcMsg, "]");
 			
-			int pcMsgX = 800 + (int)(200 - (strlen(pcMsg)*10)) / 2;
+			int pcMsgX = 790 + (int)(200 - (strlen(pcMsg)*10)) / 2; //805
 			draw_string(display, window, gc, 0xFFFFFF, pcMsgX, 90, pcMsg);
 		
 		//Adress mode and Cycles Remaining
@@ -92,7 +92,7 @@
 			strcat(adMsg, hashTemp4);
 			strcat(adMsg, "]");
 			
-			int adMsgX = 800 + (int)(200 - (strlen(adMsg)*10)) / 2;
+			int adMsgX = 790 + (int)(200 - (strlen(adMsg)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, adMsgX, 120, adMsg);
 		
 		//internal registers
@@ -107,7 +107,7 @@
 			strcat(irMsg, hashTemp6);
 			strcat(irMsg, "]");
 			
-			int irMsgX = 800 + (int)(200 - (strlen(irMsg)*10)) / 2;
+			int irMsgX = 790 + (int)(200 - (strlen(irMsg)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, irMsgX, 150, irMsg);
 		
 		//addressable registers
@@ -116,21 +116,21 @@
 			draw_hex((uint32_t)cpu.AR0, 2, hashTemp7);
 			strcat(arMsg, hashTemp7);
 			
-			strcat(arMsg, "] AR2-[");
+			strcat(arMsg, "] AR1-[");
 			char hashTemp8[5];
 			draw_hex((uint32_t)cpu.AR1, 2, hashTemp8);
 			strcat(arMsg, hashTemp8);
 			strcat(arMsg, "]");
 			
-			int arMsgX = 800 + (int)(200 - (strlen(arMsg)*10)) / 2;
+			int arMsgX = 790 + (int)(200 - (strlen(arMsg)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, arMsgX, 180, arMsg);
 			
-			char arMsg2[50] = "AR0-[";
+			char arMsg2[50] = "AR2-[";
 			char hashTemp9[5];
 			draw_hex((uint32_t)cpu.AR2, 2, hashTemp9);
 			strcat(arMsg2, hashTemp9);
 			strcat(arMsg2, "]");
-			int arMsg2X = 800 + (int)(200 - (strlen(arMsg2)*10)) / 2;
+			int arMsg2X = 790 + (int)(200 - (strlen(arMsg2)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, arMsg2X, 210, arMsg2);
 			
 			char flagMsg[50] = " ";
@@ -154,6 +154,108 @@
 			
 			int flagMsgX = 800 + (int)(200 - (strlen(flagMsg)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, flagMsgX, 240, flagMsg);
+			
+		//drawflags to highlight current things
+			
+			//PCO
+				if(cpu_get_flag(PCO) == 1){
+				
+					char hpcMsg[50] = "PCO-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.PCO, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 805, 90, hpcMsg);
+				
+				}
+				
+			//OPC
+				if(cpu_get_flag(OPC) == 1){
+				
+					char hpcMsg[50] = "OPC-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.OPC, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 895, 90, hpcMsg);
+				
+				}
+				
+			//ADM
+				if(cpu_get_flag(ADM) == 1){
+				
+					char hpcMsg[50] = "ADM-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.ADM, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 805, 120, hpcMsg);
+				
+				}
+				
+			//CRE
+				if(cpu.CRE > 0){
+					char hpcMsg[50] = "CRE-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.CRE, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 895, 120, hpcMsg);
+				}
+				
+			//IR1
+				if(cpu_get_flag(IR1) == 1){
+				
+					char hpcMsg[50] = "IR1-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.IR1, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 805, 150, hpcMsg);
+				
+				}
+				
+			//IR2
+				if(cpu_get_flag(IR2) == 1){
+					char hpcMsg[50] = "IR2-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.IR2, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 895, 150, hpcMsg);
+				}
+				
+			//AR0
+				if(cpu_get_flag(AR0) == 1){
+				
+					char hpcMsg[50] = "AR0-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.AR0, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 805, 180, hpcMsg);
+				
+				}
+				
+			//AR1
+				if(cpu_get_flag(AR1) == 1){
+					char hpcMsg[50] = "AR1-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.AR1, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 895, 180, hpcMsg);
+				}
+				
+			//AR2
+				if(cpu_get_flag(AR2) == 1){
+					char hpcMsg[50] = "AR2-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.AR2, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 850, 210, hpcMsg);
+				}
 	
 	}
 	
