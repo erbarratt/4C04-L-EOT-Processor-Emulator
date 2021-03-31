@@ -6,6 +6,7 @@
 
 #include "cpu.h"
 #include "draw.h"
+#include "code.h"
 
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY(byte)  \

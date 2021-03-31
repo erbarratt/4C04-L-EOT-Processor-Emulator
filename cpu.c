@@ -46,9 +46,9 @@
 * Returns the value of a specific bit of the drawflags
 * @return uint8_t
  */
-		uint8_t cpu_get_flag(DRAWFLAGS f){
-			return ((drawflags & f) > 0) ? 1 : 0;
-		}
+	uint8_t cpu_get_drawflag(DRAWFLAGS f){
+		return ((drawflags & f) > 0) ? 1 : 0;
+	}
 	
 /*
 * Read a byte from memory
@@ -72,8 +72,6 @@
 		cpu_set_draw_flag(PCO, true);
 		cpu.RAM[addr] = data;
 	}
-	
-	
 	
 ////////////////////////////////////////////////////////////////////////////////////////
 //ADDRESS MODES
@@ -316,26 +314,40 @@
 			//do addition into IR2 setting carry as necessary
 				case 2:
 				{
+				
+					uint16_t temp;
+				
 					switch(cpu.IR1){
 						
 						case 0:
-							cpu.IR2 += cpu.AR0;
+						default:
+							temp = (uint16_t)cpu.IR2 + (uint16_t)cpu.AR0 + (uint16_t)cpu.C;
+							// The signed Overflow flag
+							cpu.V = (~((uint16_t)cpu.IR2 ^ (uint16_t)cpu.AR0) & ((uint16_t)cpu.IR2 ^ (uint16_t)temp)) & 0x0080;
 						break;
 						case 1:
-							cpu.IR2 += cpu.AR1;
+							temp = (uint16_t)cpu.IR2 + (uint16_t)cpu.AR1 + (uint16_t)cpu.C;
+							// The signed Overflow flag
+							cpu.V = (~((uint16_t)cpu.IR2 ^ (uint16_t)cpu.AR1) & ((uint16_t)cpu.IR2 ^ (uint16_t)temp)) & 0x0080;
 						break;
 						case 2:
-							cpu.IR2 += cpu.AR2;
+							temp = (uint16_t)cpu.IR2 + (uint16_t)cpu.AR2 + (uint16_t)cpu.C;
+							// The signed Overflow flag
+							cpu.V = (~((uint16_t)cpu.IR2 ^ (uint16_t)cpu.AR2) & ((uint16_t)cpu.IR2 ^ (uint16_t)temp)) & 0x0080;
 						break;
 						
 					}
 					
-					if(cpu.IR2 < 0){
+					// The carry flag out exists in the high byte bit 0
+						cpu.C = temp > 255;
+						
+					// The Zero flag is set if the result is 0
+						cpu.Z = ((temp & 0x00FF) == 0);
+						
+					// The negative flag is set to the most significant bit of the result
+						cpu.N = temp & 0x80;
 					
-						cpu.C = 1;
-					
-					}
-					
+					cpu.IR2 = temp & 0x00FF;
 					cpu_set_draw_flag(IR2, true);
 					
 				}
@@ -487,9 +499,16 @@
 				//@1
 			cpu.AR2 = 0x00;
 				//@1
+				
+		//flag bits
+			cpu.C = 0;
+			cpu.Z = 0;
+			cpu.V = 0;
+			cpu.N = 0;
 		
 		//reset program counter to start of program memory (ROM)
 			cpu.PCO = 0x80;
+			cpu.lastOpAddr = 0x80;
 				//@1
 				
 		//set remaing cycles to 0, which indicates read new instruction
@@ -506,6 +525,9 @@
 			drawflags = 0x00;
 	
 		if(cpu.CRE == 0){
+		
+			//set last opcode location for drawing code lines
+				cpu.lastOpAddr = cpu.PCO;
 		
 			//read next instruction
 				cpu.IR1 = cpu_read(cpu.PCO);

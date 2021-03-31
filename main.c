@@ -9,6 +9,12 @@ int main(void){
 	
 	sleep(1);
 	
+	printf("Program Loaded...\n");
+	
+	code_disassemble();
+	
+	sleep(1);
+	
 	printf("Opening Window...\n");
 	
 	Display *display;
@@ -38,7 +44,7 @@ int main(void){
 			10,                             //x
 			10,                             //y
 			1000,                            //width
-			610,                            //height 20 lines @ 30px line height, 20px font height + 10 border
+			640,                            //height 20 lines @ 30px line height, 20px font height + 10 border
 			0,                              //border width
 			0x252525,    //border color
 			0x252525     //background color
@@ -51,7 +57,6 @@ int main(void){
 		XMapWindow(display, window);
 		
 	//set graphics context and font
-		//XFontStruct* myFont = XLoadQueryFont(display, "-Misc-Fixed-Medium-R-Normal--7-70-75-75-C-50-ISO10646-1");
 		font = XLoadQueryFont(display, "10x20");
 		gc = XCreateGC(display, window, 0, 0);
 		XSetFont(display, gc, font->fid);
@@ -59,11 +64,6 @@ int main(void){
 	while (1) {
 	
 		XNextEvent(display, &evnt);
-		
-		//if (evnt.type == Expose) {
-		//	//XFillRectangle(display, window, DefaultGC(display, screen), 20, 20, 10, 10);
-		//
-		//}
 		
 		if (evnt.type == KeyPress) {
 			
@@ -77,6 +77,9 @@ int main(void){
 				//restart "r"
 					system_restart();
 					
+				//dissemble code
+					code_disassemble();
+					
 				//draw current state
 					draw_all(display, window, gc);
 			
@@ -84,8 +87,6 @@ int main(void){
 			
 				//progress through next cycle
 					cpu_execute();
-					
-					printf("%#X %d\n", cpu.PCO, cpu.CRE);
 					
 				//draw current state
 					draw_all(display, window, gc);

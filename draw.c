@@ -1,14 +1,7 @@
 #include "draw.h"
 #include "cpu.h"
 
-//colors for printing
-	char ANSI_COLOR_RED[] = "\x1b[31m";
-	char ANSI_COLOR_GREEN[] = "\x1b[32m";
-	char ANSI_COLOR_YELLOW[] = "\x1b[33m";
-	char ANSI_COLOR_BLUE[] = "\x1b[34m";
-	char ANSI_COLOR_MAGENTA[] = "\x1b[35m";
-	char ANSI_COLOR_CYAN[] = "\x1b[36m";
-	char ANSI_COLOR_RESET[] = "\x1b[0m";
+char code[MEM_LENGTH][100];
 	
 /**
 * Pust hex string in dest string by usage:
@@ -45,6 +38,17 @@
 			
 	}
 	
+/**
+* Draw a string to the window at a given location and color
+* @param Display * display X11 display
+* @param Window window X11 window
+* @param GC gc X11 Graphics Context
+* @param unisgned long color Hex code of colour
+* @param int x X coord - text pivot is bottom left of first character
+* @param int y Y coord - text pivot is bottom left of first character
+* @param char * str The text to be output
+* @return void
+*/
 	void draw_string(Display * display, Window window, GC gc, unsigned long color, int x, int y, char * str){
 	
 		XSetForeground(display, gc, color);
@@ -53,6 +57,13 @@
 	
 	}
 	
+/**
+* Draw the current status of the CPU, color coded
+* @param Display * display X11 display
+* @param Window window X11 window
+* @param GC gc X11 Graphics Context
+* @return void
+*/
 	void draw_cpu(Display * display, Window window, GC gc){
 	
 		char * msg = "CPU Status";
@@ -133,32 +144,10 @@
 			int arMsg2X = 790 + (int)(200 - (strlen(arMsg2)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, arMsg2X, 210, arMsg2);
 			
-			char flagMsg[50] = " ";
-			if(cpu.C == true){
-				strcat(flagMsg, "C:1 ");
-			} else {
-				strcat(flagMsg, "C:0 ");
-			}
-			
-			if(cpu.Z == true){
-				strcat(flagMsg, "Z:1 ");
-			} else {
-				strcat(flagMsg, "Z:0 ");
-			}
-			
-			if(cpu.S == true){
-				strcat(flagMsg, "S:1 ");
-			} else {
-				strcat(flagMsg, "S:0 ");
-			}
-			
-			int flagMsgX = 800 + (int)(200 - (strlen(flagMsg)*10)) / 2;
-			draw_string(display, window, gc, 0xFFFFFF, flagMsgX, 240, flagMsg);
-			
 		//drawflags to highlight current things
 			
 			//PCO
-				if(cpu_get_flag(PCO) == 1){
+				if(cpu_get_drawflag(PCO) == 1){
 				
 					char hpcMsg[50] = "PCO-[";
 					char hHashTemp[5];
@@ -170,7 +159,7 @@
 				}
 				
 			//OPC
-				if(cpu_get_flag(OPC) == 1){
+				if(cpu_get_drawflag(OPC) == 1){
 				
 					char hpcMsg[50] = "OPC-[";
 					char hHashTemp[5];
@@ -182,7 +171,7 @@
 				}
 				
 			//ADM
-				if(cpu_get_flag(ADM) == 1){
+				if(cpu_get_drawflag(ADM) == 1){
 				
 					char hpcMsg[50] = "ADM-[";
 					char hHashTemp[5];
@@ -204,7 +193,7 @@
 				}
 				
 			//IR1
-				if(cpu_get_flag(IR1) == 1){
+				if(cpu_get_drawflag(IR1) == 1){
 				
 					char hpcMsg[50] = "IR1-[";
 					char hHashTemp[5];
@@ -216,7 +205,7 @@
 				}
 				
 			//IR2
-				if(cpu_get_flag(IR2) == 1){
+				if(cpu_get_drawflag(IR2) == 1){
 					char hpcMsg[50] = "IR2-[";
 					char hHashTemp[5];
 					draw_hex((uint32_t)cpu.IR2, 2, hHashTemp);
@@ -226,7 +215,7 @@
 				}
 				
 			//AR0
-				if(cpu_get_flag(AR0) == 1){
+				if(cpu_get_drawflag(AR0) == 1){
 				
 					char hpcMsg[50] = "AR0-[";
 					char hHashTemp[5];
@@ -238,7 +227,7 @@
 				}
 				
 			//AR1
-				if(cpu_get_flag(AR1) == 1){
+				if(cpu_get_drawflag(AR1) == 1){
 					char hpcMsg[50] = "AR1-[";
 					char hHashTemp[5];
 					draw_hex((uint32_t)cpu.AR1, 2, hHashTemp);
@@ -248,7 +237,7 @@
 				}
 				
 			//AR2
-				if(cpu_get_flag(AR2) == 1){
+				if(cpu_get_drawflag(AR2) == 1){
 					char hpcMsg[50] = "AR2-[";
 					char hHashTemp[5];
 					draw_hex((uint32_t)cpu.AR2, 2, hHashTemp);
@@ -256,11 +245,39 @@
 					strcat(hpcMsg, "]");
 					draw_string(display, window, gc, 0xFF00E8, 850, 210, hpcMsg);
 				}
+				
+			//cpu status flags
+				if(cpu.C == true){
+					draw_string(display, window, gc, 0x22d816, 815, 240, "C:1");
+				} else {
+					draw_string(display, window, gc, 0xd81616, 815, 240, "C:0");
+				}
+				
+				if(cpu.Z == true){
+					draw_string(display, window, gc, 0x22d816, 855, 240, "Z:1");
+				} else {
+					draw_string(display, window, gc, 0xd81616, 855, 240, "Z:0");
+				}
+				
+				if(cpu.V == true){
+					draw_string(display, window, gc, 0x22d816, 895, 240, "V:1");
+				} else {
+					draw_string(display, window, gc, 0xd81616, 895, 240, "V:0");
+				}
+				
+				if(cpu.N == true){
+					draw_string(display, window, gc, 0x22d816, 935, 240, "N:1");
+				} else {
+					draw_string(display, window, gc, 0xd81616, 935, 240, "N:0");
+				}
 	
 	}
-	
+
 /**
 * Draw the contents of memory in a matrix of set height and width
+* @param Display * display X11 display
+* @param Window window X11 window
+* @param GC gc X11 Graphics Context
 * @return void
 */
 	void draw_ram(Display * display, Window window, GC gc){
@@ -273,7 +290,7 @@
 		uint8_t pcVal = 0;
 		
 		//draw mem table header in cyan
-			char topLine[120] = "      ";
+			char topLine[120] = "    ";
 			
 			for (int col = 0; col < 16; col++){
 			
@@ -301,13 +318,39 @@
 			
 				//split memory into two blocks
 					if(row == 8){
+					
 						y += 30;
+						
+						//draw mem table header in cyan
+						char topLine2[120] = "    ";
+						
+						for (int col = 0; col < 16; col++){
+						
+							if(col == 8){
+								strcat(topLine2, "  ");
+							}
+							
+							if(col == 0){
+								strcat(topLine2, " 00");
+							} else {
+								strcat(topLine2, " ");
+								char hashTemp2[5];
+								draw_hex((uint32_t)col, 2, hashTemp2);
+								strcat(topLine2, hashTemp2);
+							}
+							
+						}
+						
+						draw_string(display, window, gc, 0x28d9ed, 10, y, topLine2);
+						
+						y += 30;
+						
 					}
 			
 				//draw the starting address of this line of bytes
-					char memStart[8] = "0x";
+					char memStart[8] = " $";
 					char hashTemp[5];
-					draw_hex((uint32_t)nAddr, 4, hashTemp);
+					draw_hex((uint32_t)nAddr, 2, hashTemp);
 					strcat(memStart, hashTemp);
 					draw_string(display, window, gc, 0x28d9ed, 10, y, memStart);
 				
@@ -362,7 +405,7 @@
 					strcat(line,"|");
 				
 				//draw line to screen
-					draw_string(display, window, gc, 0xffffff, 70, y, line);
+					draw_string(display, window, gc, 0xffffff, 50, y, line);
 				
 				y += 30;
 				
@@ -370,7 +413,7 @@
 			
 		//draw locations AFTER the above, so it's atop it
 		//PC Hex value
-			pcX = 70 + (pcCol*30) + ((pcCol >= 8) ? 20 : 0);
+			pcX = 50 + (pcCol*30) + ((pcCol >= 8) ? 20 : 0);
 			
 			char pcLine[50] = " ";
 			
@@ -385,7 +428,7 @@
 			draw_string(display, window, gc, 0xff5100, pcX, pcY, pcLine);
 			
 		//now highlight ascii output
-			pcX = 590 + (pcCol*10) + ((pcCol >= 8) ? 10 : 0);
+			pcX = 570 + (pcCol*10) + ((pcCol >= 8) ? 10 : 0);
 			
 			char asciiLine[50] = " ";
 			if (pcVal >= ' ' && pcVal <= '~'){
@@ -399,16 +442,155 @@
 			draw_string(display, window, gc, 0xff5100, pcX, pcY, asciiLine);
 		
 	}
+	
+/**
+* Draw codes lines surrounding last opcode address location
+* @param Display * display X11 display
+* @param Window window X11 window
+* @param GC gc X11 Graphics Context
+* @return void
+*/
+	void draw_code(Display * display, Window window, GC gc, uint8_t addr){
+	
+		char * msg = "Code Lines";
+		int msgX = 790 + (int)(200 - (strlen(msg)*10)) / 2;
+		draw_string(display, window, gc, 0x28d9ed, msgX, 330, msg);
+	
+		char lines[8][100];
+		
+		int lower = 0, count = 0, nullLines = 0;
+		uint16_t start;
+		uint16_t lastOpAddrFound = 0;
+		start = addr;
+		
+		//midpoint
+			uint8_t midPoint = 3;
+		
+		//go backwards finding the 3 instructions before the current.
+		//in the dissassembler, inter-instruction memorylocations are padded with ---
+		//these are ignored as aren't instructions
+		//programs are always surrounded with NOP commands from memory + code[] init
+			while(lower < midPoint){
+				
+				start--;
+				
+				if(strcmp(code[start], "---") != 0){
+					lower++;
+					lastOpAddrFound = start;
+				} else {
+				
+					nullLines++;
+					if(nullLines == 6){
+						start = lastOpAddrFound;
+						
+						for(int i = 0; i <= midPoint-lower; i++){
+							strcpy(lines[i], "---");
+						}
+						
+						count = midPoint-lower;
+						lower = midPoint;
+					}
+					
+				}
+			
+			}
+			
+		//now move forward from this position, ignore --- and store the op line
+			while(count < 8){
+			
+				if(strcmp(code[start], "---") != 0){
+					strcpy(lines[count], code[start]);
+					count++;
+				}
+				
+				start++;
+			
+			}
+		
+		//finally now we have full lines, output them highlighting current instruction
+			for(int i = 0; i < 8; i++){
+			
+				int lineX = 790 + (int)(200 - (strlen(lines[i])*10)) / 2;
+				int lineY = (12*30) + (i*30);
+			
+				if(i == midPoint){
+					//draw cyan
+					draw_string(display, window, gc, 0x28d9ed, lineX, lineY, lines[i]);
+				} else {
+					//draw white
+					draw_string(display, window, gc, 0xFFFFFF, lineX, lineY, lines[i]);
+				}
+			}
+	
+	}
 
+/**
+* Draw all elements of the program
+* @param Display * display X11 display
+* @param Window window X11 window
+* @param GC gc X11 Graphics Context
+* @return void
+*/
 	void draw_all(Display * display, Window window, GC gc){
 	
 		XClearWindow(display, window);
 		draw_ram(display, window, gc);
 		draw_cpu(display, window, gc);
+		draw_code(display, window, gc, cpu.lastOpAddr);
 		
 		char * msg = "Press Space to step through CPU Cycles. Press Q to quit or R to reset system.";
 		int msgX = (int)(1000 - (strlen(msg)*10)) / 2;
-		draw_string(display, window, gc, 0xFFFFFF, msgX, 600, msg);
+		draw_string(display, window, gc, 0xFFFFFF, msgX, 630, msg);
 	
 	}
 	
+/**
+* Dissassemble the memory program into coded lines to display
+* @return void
+*/
+	void code_disassemble(){
+	
+		for(uint8_t i = 0; i < 128; i++){
+			strcpy(code[i], "NOP {AMN}");
+		}
+	
+		uint16_t addr = PROG_MEM_LOC;
+		uint16_t lineAddr;
+		
+		while(addr < MEM_LENGTH){
+		
+			lineAddr = addr;
+			char line[100] = "$";
+			char hashTemp[5]; //+1 for \0
+			draw_hex(addr, 2, hashTemp);
+			strcat(line, hashTemp);
+			strcat(line, ": ");
+			
+			uint8_t opcode = cpu.RAM[addr];
+			strcat(line, instructions[opcode].name);
+			addr++;
+			
+			if(instructions[opcode].addrmode == &cpu_am_AMN){
+				strcpy(code[addr], "---");
+				strcat(line, " {AMN}");
+			} else if(instructions[opcode].addrmode == &cpu_am_AMI){
+				strcpy(code[addr], "---");
+				strcat(line, " {AMI}");
+				addr++;
+				strcpy(code[addr], "---");
+				addr++;
+			
+			} else if(instructions[opcode].addrmode == &cpu_am_AMM){
+				strcpy(code[addr], "---");
+				strcat(line, " {AMM}");
+				addr++;
+				strcpy(code[addr], "---");
+				addr++;
+			
+			}
+			
+			strcpy(code[lineAddr], line);
+		
+		}
+	
+	}

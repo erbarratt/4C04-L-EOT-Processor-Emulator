@@ -80,12 +80,17 @@ typedef struct{
 	//Zero Flag
 		bool Z;
 	
-	//Signed arithmetic flag
-		bool S;
+	//Overflow
+		bool V;
+		
+	//Negative Flag
+		bool N;
 	
 	//current instruction
 		INSTRUCTION INS;
-	
+		
+	//last op address
+		uint8_t lastOpAddr;
 	
 } CPU;
 
@@ -93,7 +98,7 @@ extern CPU cpu;
 
 //cpu base functions
 	void cpu_set_draw_flag(DRAWFLAGS f, bool v);
-	uint8_t cpu_get_flag(DRAWFLAGS f);
+	uint8_t cpu_get_drawflag(DRAWFLAGS f);
 
 //Address modes
 	uint8_t cpu_am_AMN();
@@ -108,3 +113,5 @@ extern CPU cpu;
 	
 	void system_restart();
 	void cpu_execute();
+
+	void code_disassemble();
