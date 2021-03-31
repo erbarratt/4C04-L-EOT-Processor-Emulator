@@ -92,12 +92,7 @@ char code[MEM_LENGTH][100];
 			draw_string(display, window, gc, 0xFFFFFF, pcMsgX, 90, pcMsg);
 		
 		//Adress mode and Cycles Remaining
-			char adMsg[50] = "ADM-[";
-			char hashTemp3[5];
-			draw_hex((uint32_t)cpu.ADM, 2, hashTemp3);
-			strcat(adMsg, hashTemp3);
-			
-			strcat(adMsg, "] CRE-[");
+			char adMsg[50] = "CRE-[";
 			char hashTemp4[5];
 			draw_hex((uint32_t)cpu.CRE, 2, hashTemp4);
 			strcat(adMsg, hashTemp4);
@@ -140,6 +135,11 @@ char code[MEM_LENGTH][100];
 			char hashTemp9[5];
 			draw_hex((uint32_t)cpu.AR2, 2, hashTemp9);
 			strcat(arMsg2, hashTemp9);
+			
+			strcat(arMsg2, "] AR3-[");
+			char hashTemp11[5];
+			draw_hex((uint32_t)cpu.AR3, 2, hashTemp11);
+			strcat(arMsg2, hashTemp11);
 			strcat(arMsg2, "]");
 			int arMsg2X = 780 + (int)(200 - (strlen(arMsg2)*10)) / 2;
 			draw_string(display, window, gc, 0xFFFFFF, arMsg2X, 210, arMsg2);
@@ -170,18 +170,6 @@ char code[MEM_LENGTH][100];
 				
 				}
 				
-			//ADM
-				if(cpu_get_drawflag(ADM) == 1){
-				
-					char hpcMsg[50] = "ADM-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.ADM, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 795, 120, hpcMsg);
-				
-				}
-				
 			//CRE
 				if(cpu.CRE > 0){
 					char hpcMsg[50] = "CRE-[";
@@ -189,7 +177,8 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.CRE, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 885, 120, hpcMsg);
+					int hpcMsgX = 780 + (int)(200 - (strlen(hpcMsg)*10)) / 2;
+					draw_string(display, window, gc, 0xFF00E8, hpcMsgX, 120, hpcMsg);
 				}
 				
 			//IR1
@@ -243,7 +232,17 @@ char code[MEM_LENGTH][100];
 					draw_hex((uint32_t)cpu.AR2, 2, hHashTemp);
 					strcat(hpcMsg, hHashTemp);
 					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 840, 210, hpcMsg);
+					draw_string(display, window, gc, 0xFF00E8, 795, 210, hpcMsg);
+				}
+				
+			//AR3
+				if(cpu_get_drawflag(AR3) == 1){
+					char hpcMsg[50] = "AR3-[";
+					char hHashTemp[5];
+					draw_hex((uint32_t)cpu.AR3, 2, hHashTemp);
+					strcat(hpcMsg, hHashTemp);
+					strcat(hpcMsg, "]");
+					draw_string(display, window, gc, 0xFF00E8, 885, 210, hpcMsg);
 				}
 				
 			//cpu status flags
@@ -480,6 +479,8 @@ char code[MEM_LENGTH][100];
 				if(strcmp(code[start], "---") != 0){
 					lower++;
 					lastOpAddrFound = start;
+					//reset null lines so we don't count 6 overall
+					nullLines = 0;
 				} else {
 				
 					nullLines++;
@@ -554,7 +555,12 @@ char code[MEM_LENGTH][100];
 	void code_disassemble(){
 	
 		for(uint8_t i = 0; i < 128; i++){
-			strcpy(code[i], "NOP {AMN}");
+			char line [50] = "$";
+			char hex[5];
+			draw_hex(i, 2, hex);
+			strcat(line, hex);
+			strcat(line, ": NOP c2");
+			strcpy(code[i], line);
 		}
 	
 		uint16_t addr = PROG_MEM_LOC;
@@ -571,41 +577,49 @@ char code[MEM_LENGTH][100];
 			
 			uint8_t opcode = cpu.RAM[addr];
 			strcat(line, instructions[opcode].name);
+			
+			char cycles[10];
+			sprintf(cycles, " c%d", instructions[opcode].cycles);
+			strcat(line, cycles);
+			
 			addr++;
 			
-			if(instructions[opcode].addrmode == &cpu_am_AMN){
+			
+			if(instructions[opcode].operate == &cpu_ins_NOP){
 			
 				strcpy(code[addr], "---");
-				strcat(line, " {AMN}");
 				
-			} else if(instructions[opcode].addrmode == &cpu_am_AMI){
+			} else if(
+				instructions[opcode].operate == &cpu_ins_BMP ||
+				instructions[opcode].operate == &cpu_ins_SQR ||
+				instructions[opcode].operate == &cpu_ins_JMP ||
+				instructions[opcode].operate == &cpu_ins_JNE
+			){
 			
-				strcpy(code[addr], "---");
-				strcat(line, " {AMI}");
-				addr++;
-				strcpy(code[addr], "---");
-				addr++;
-			
-			} else if(instructions[opcode].addrmode == &cpu_am_AMM){
-			
-				strcpy(code[addr], "---");
-				strcat(line, " {AMM}");
-				addr++;
 				strcpy(code[addr], "---");
 				addr++;
 			
-			} else if(instructions[opcode].addrmode == &cpu_am_AMR){
+			} else if(
+				instructions[opcode].operate == &cpu_ins_LRV ||
+				instructions[opcode].operate == &cpu_ins_LRM ||
+				instructions[opcode].operate == &cpu_ins_LRR ||
+				instructions[opcode].operate == &cpu_ins_STV ||
+				instructions[opcode].operate == &cpu_ins_STR
+			){
 			
 				strcpy(code[addr], "---");
-				strcat(line, " {AMR}");
 				addr++;
 				strcpy(code[addr], "---");
 				addr++;
-				
+			
 			}
 			
 			strcpy(code[lineAddr], line);
 		
+		}
+		
+		for(uint16_t i = PROG_MEM_LOC; i < MEM_LENGTH; i++){
+			//printf("%s\n", code[i]);
 		}
 	
 	}

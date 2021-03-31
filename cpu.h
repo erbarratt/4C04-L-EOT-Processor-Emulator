@@ -6,13 +6,6 @@
 #define MEM_LENGTH 256
 #define PROG_MEM_LOC 0x80
 
-typedef enum  {
-	NoAddress,
-	Immediate,
-	Memory,
-	AtRegister
-} ADRESS_MODE;
-
 //bit field for cpu status
 	typedef enum
 	{
@@ -23,27 +16,15 @@ typedef enum  {
 		AR0 = (1 << 3),	// Addressable Reg 0
 		AR1 = (1 << 4),	// Addressable Reg 1
 		AR2 = (1 << 5),	// Addressable Reg 2
-		OPC = (1 << 6),	// Current Opcode
-		ADM = (1 << 7),	// Cycles Remaining
+		AR3 = (1 << 6),	// Current Opcode
+		OPC = (1 << 7),	// Current Opcode
 		
 	} DRAWFLAGS;
-	
-extern DRAWFLAGS drawFlags;
-
-typedef enum  {
-	NOP, //execute nothing
-	LDR, //load following register with following
-	STR, //store following register at following mem
-	ADD, //add b to a, store in a
-	SUB, //add a to b, store in b
-} INSTRUCTION_TYPE;
 
 typedef struct{
-	INSTRUCTION_TYPE type;
 	char name[10];
 	char label[50];
 	void (*operate )(void);
-	uint8_t (*addrmode)(void);
 	uint8_t cycles;
 } INSTRUCTION;
 
@@ -57,9 +38,6 @@ typedef struct{
 	//current opcode
 		uint8_t OPC;
 		
-	//current address mode
-		ADRESS_MODE ADM;
-		
 	//remaining cycles
 		uint8_t CRE;
 
@@ -71,6 +49,7 @@ typedef struct{
 		uint8_t AR0;
 		uint8_t AR1;
 		uint8_t AR2;
+		uint8_t AR3;
 	
 	//ROM + RAM
 		uint8_t RAM[MEM_LENGTH];
@@ -100,19 +79,23 @@ extern CPU cpu;
 //cpu base functions
 	void cpu_set_draw_flag(DRAWFLAGS f, bool v);
 	uint8_t cpu_get_drawflag(DRAWFLAGS f);
-
-//Address modes
-	uint8_t cpu_am_AMN();
-	uint8_t cpu_am_AMI();
-	uint8_t cpu_am_AMM();
-	uint8_t cpu_am_AMR();
 	
 //Instructions
 	void cpu_ins_NOP();
+	
+	void cpu_ins_LRV();
+	void cpu_ins_LRM();
 	void cpu_ins_LRR();
+	
+	void cpu_ins_STV();
 	void cpu_ins_STR();
+	
 	void cpu_ins_BMP();
+	void cpu_ins_SQR();
 	void cpu_ins_ADD();
+	
+	void cpu_ins_JMP();
+	void cpu_ins_JNE();
 	
 	void system_restart();
 	void cpu_execute();

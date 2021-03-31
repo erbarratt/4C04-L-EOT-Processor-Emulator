@@ -13,7 +13,7 @@ int main(void){
 	
 	code_disassemble();
 	
-	sleep(1);
+	usleep(200000);
 	
 	printf("Opening Window...\n");
 	
@@ -61,7 +61,34 @@ int main(void){
 		gc = XCreateGC(display, window, 0, 0);
 		XSetFont(display, gc, font->fid);
 	
+	//auto play?
+		bool autoPlay = false;
+	
 	while (1) {
+	
+		if(autoPlay){
+			
+			usleep(200000); // 0.5s
+			
+			//create a random keypress event and send it, so the following XNextEvent catches it
+				XKeyEvent event;
+				event.display     = display;
+				event.window      = window;
+				event.root        = RootWindow(display, screen);
+				event.subwindow   = None;
+				event.time        = CurrentTime;
+				event.x           = 1;
+				event.y           = 1;
+				event.x_root      = 1;
+				event.y_root      = 1;
+				event.same_screen = True;
+				event.keycode     = XKeysymToKeycode(display, 42);
+				event.state       = 0;
+				event.type = KeyPress;
+				
+				XSendEvent(display, window, True, KeyPressMask, (XEvent *)&event);
+			
+		}
 	
 		XNextEvent(display, &evnt);
 		
@@ -82,6 +109,11 @@ int main(void){
 					
 				//draw current state
 					draw_all(display, window, gc);
+			
+			} else if(evnt.xkey.keycode == 38){
+				
+				//autoplay toggle
+					autoPlay = (autoPlay) ? false : true;
 			
 			} else {
 			
