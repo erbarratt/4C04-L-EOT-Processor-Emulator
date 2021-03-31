@@ -542,7 +542,7 @@ char code[MEM_LENGTH][100];
 		draw_cpu(display, window, gc);
 		draw_code(display, window, gc, cpu.lastOpAddr);
 		
-		char * msg = "Press Space to step through CPU Cycles. Press Q to quit or R to reset system.";
+		char * msg = "Press Space to step through CPU Cycles. Q = Quit, R = Reset, A = Slow Auto, F = Fast Auto.";
 		int msgX = (int)(1000 - (strlen(msg)*10)) / 2;
 		draw_string(display, window, gc, 0xFFFFFF, msgX, 630, msg);
 	

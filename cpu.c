@@ -36,8 +36,8 @@
 		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //11
 		
 		{"JMP", "Jump, from Value",                    &cpu_ins_JMP, 2},       //12 [$mem]
-		{"JNE", "Jump if not Zero",                    &cpu_ins_JNE, 2},       //13 [$mem]
-		{"JNZ", "Jump, Immediate",                     &cpu_ins_NOP, 2},       //14 [$mem]
+		{"JNE", "Jump if Zero not set",                &cpu_ins_JNE, 2},       //13 [$mem]
+		{"JZS", "Jump if Zero set",                    &cpu_ins_JZS, 2},       //14 [$mem]
 	};
 	
 /*
@@ -97,6 +97,7 @@
 /*
 * Instruction: Load register from value
 * 3 cycles
+* Z,N
 * @return void
 */
 	void cpu_ins_LRV(){
@@ -117,6 +118,8 @@
 				
 			//load the value at IR2 into register chosen in IR1
 				case 1: {
+				
+					uint8_t temp = cpu.IR2;
 				
 					switch(cpu.IR1){
 						
@@ -139,6 +142,10 @@
 						break;
 						
 					}
+					
+					//set flags
+						cpu.Z = (temp == 0x00);
+						cpu.N = (temp & 0x80);
 				
 				} break;
 		
@@ -149,6 +156,7 @@
 /*
 * Instruction: Load register from memory addr
 * 4 cycles
+* Z,N
 * @return void
 */
 	void cpu_ins_LRM(){
@@ -176,6 +184,8 @@
 			//load the value at IR2 into register chosen in IR1
 				case 1: {
 				
+					uint8_t temp = cpu.IR2;
+				
 					switch(cpu.IR1){
 						
 						case 0:
@@ -197,6 +207,10 @@
 						break;
 						
 					}
+					
+					//set flags
+						cpu.Z = (temp == 0x00);
+						cpu.N = (temp & 0x80);
 				
 				} break;
 		
@@ -207,6 +221,7 @@
 /*
 * Instruction: Load register from Register
 * 4 cycles
+* Z,N
 * @return void
 */
 	void cpu_ins_LRR(){
@@ -256,27 +271,37 @@
 			//load the value at IR2 into register chosen in IR1
 				case 1: {
 				
+					uint8_t temp;
+				
 					switch(cpu.IR1){
 						
 						case 0:
 						default:
 							cpu.AR0 = cpu_read(cpu.IR2, false);
+							temp = cpu.AR0;
 							cpu_set_draw_flag(AR0, true);
 						break;
 						case 1:
 							cpu.AR1 = cpu_read(cpu.IR2, false);
+							temp = cpu.AR1;
 							cpu_set_draw_flag(AR1, true);
 						break;
 						case 2:
 							cpu.AR2 = cpu_read(cpu.IR2, false);
+							temp = cpu.AR2;
 							cpu_set_draw_flag(AR2, true);
 						break;
 						case 3:
 							cpu.AR3 = cpu_read(cpu.IR2, false);
+							temp = cpu.AR3;
 							cpu_set_draw_flag(AR3, true);
 						break;
 						
 					}
+					
+					//set flags
+						cpu.Z = (temp == 0x00);
+						cpu.N = (temp & 0x80);
 				
 				} break;
 		
@@ -395,9 +420,8 @@
 	
 /*
 * Instruction: Bump (Increment) value in register
-* NoAddress: n/a
-* Immediate: 4 cycles
-* Memory: n/a
+* 4 cycles
+* V,Z,N
 * @return void
 */
 	void cpu_ins_BMP(){
@@ -483,9 +507,8 @@
 	
 /*
 * Instruction: Squash (Decrement) value in register
-* NoAddress: n/a
-* Immediate: 4 cycles
-* Memory: n/a
+* 4 cycles
+* V,Z,N
 * @return void
 */
 	void cpu_ins_SQR(){
@@ -571,9 +594,8 @@
 	
 /*
 * Instruction: Add - <reg1> + <reg2>
-* NoAddress: n/a
-* Immediate: 5 cycles
-* Memory: n/a
+* 5 cycles
+* V,Z,N
 * @return void
 */
 	void cpu_ins_ADD(){
@@ -660,8 +682,9 @@
 			//load the value at IR2 into register chosen in IR1
 				case 1: {
 				
+					uint8_t temp = cpu.IR2;
+				
 					switch(cpu.IR1){
-						
 						case 0:
 						default:
 							cpu.AR0 = cpu.IR2;
@@ -675,8 +698,19 @@
 							cpu.AR2 = cpu.IR2;
 							cpu_set_draw_flag(AR2, true);
 						break;
-						
+						case 3:
+							cpu.AR3 = cpu.IR2;
+							cpu_set_draw_flag(AR3, true);
+						break;
 					}
+					
+					//set flags
+						//overflowed?
+						cpu.V = (temp == 0);
+						//now zero?
+						cpu.Z = (temp == 0);
+						//negative?
+						cpu.N = (temp & 0x80);
 				
 				} break;
 		
@@ -684,6 +718,11 @@
 	
 	}
 	
+/*
+* Instruction: Jump
+* 2 cycles
+* @return void
+*/
 	void cpu_ins_JMP(){
 	
 		switch(cpu.CRE){
@@ -704,6 +743,12 @@
 	
 	}
 	
+	
+/*
+* Instruction: Jump if Zero = 0
+* 2 cycles
+* @return void
+*/
 	void cpu_ins_JNE(){
 	
 		switch(cpu.CRE){
@@ -719,6 +764,36 @@
 				
 					//only set PCO if zero flag not set
 					if(cpu.Z == false){
+						cpu.PCO = cpu.IR1;
+						cpu_set_draw_flag(PCO, true);
+					}
+					
+				} break;
+		
+		}
+	
+	}
+	
+/*
+* Instruction: Jump if Zero = 1
+* 2 cycles
+* @return void
+*/
+	void cpu_ins_JZS(){
+	
+		switch(cpu.CRE){
+		
+			//load IR1 with memory address to jump to
+				case 2:
+					cpu.IR1 = cpu_read(cpu.PCO, true);
+					cpu_set_draw_flag(IR1, true);
+				break;
+				
+			//load IR2 with address of the destination memory location
+				case 1:{
+				
+					//only set PCO if zero flag not set
+					if(cpu.Z == true){
 						cpu.PCO = cpu.IR1;
 						cpu_set_draw_flag(PCO, true);
 					}
@@ -892,6 +967,11 @@
 			drawflags = 0x00;
 	
 		if(cpu.CRE == 0){
+		
+			//check to see if program has ended, if so loop back
+				if(cpu.PCO > 0xfb){
+					cpu.PCO = 0x80;
+				}
 		
 			//set last opcode location for drawing code lines
 				cpu.lastOpAddr = cpu.PCO;

@@ -96,6 +96,7 @@ extern CPU cpu;
 	
 	void cpu_ins_JMP();
 	void cpu_ins_JNE();
+	void cpu_ins_JZS();
 	
 	void system_restart();
 	void cpu_execute();

@@ -62,11 +62,12 @@ int main(void){
 		XSetFont(display, gc, font->fid);
 	
 	//auto play?
-		bool autoPlay = false;
+		bool autoPlaySlow = false;
+		bool autoPlayFast = false;
 	
 	while (1) {
 	
-		if(autoPlay){
+		if(autoPlaySlow){
 			
 			usleep(200000); // 0.5s
 			
@@ -88,6 +89,28 @@ int main(void){
 				
 				XSendEvent(display, window, True, KeyPressMask, (XEvent *)&event);
 			
+		} else if (autoPlayFast){
+		
+			usleep(2000); // 0.5s
+			
+			//create a random keypress event and send it, so the following XNextEvent catches it
+				XKeyEvent event;
+				event.display     = display;
+				event.window      = window;
+				event.root        = RootWindow(display, screen);
+				event.subwindow   = None;
+				event.time        = CurrentTime;
+				event.x           = 1;
+				event.y           = 1;
+				event.x_root      = 1;
+				event.y_root      = 1;
+				event.same_screen = True;
+				event.keycode     = XKeysymToKeycode(display, 42);
+				event.state       = 0;
+				event.type = KeyPress;
+				
+				XSendEvent(display, window, True, KeyPressMask, (XEvent *)&event);
+		
 		}
 	
 		XNextEvent(display, &evnt);
@@ -113,7 +136,14 @@ int main(void){
 			} else if(evnt.xkey.keycode == 38){
 				
 				//autoplay toggle
-					autoPlay = (autoPlay) ? false : true;
+					autoPlaySlow = (autoPlaySlow) ? false : true;
+					autoPlayFast = false;
+			
+			}  else if(evnt.xkey.keycode == 39){
+				
+				//autoplay toggle
+					autoPlayFast = (autoPlayFast) ? false : true;
+					autoPlaySlow = false;
 			
 			} else {
 			
