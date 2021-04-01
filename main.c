@@ -303,6 +303,7 @@ int main(void){
 				
 				//get next char
 					c = (uint8_t)fgetc(fp);
+					printf("%c", c);
 		
 				//check if end of file or end of memory now
 					if(feof(fp) || bytes > 128){
@@ -334,6 +335,7 @@ int main(void){
 						while(1){
 						
 							uint8_t cHere = (uint8_t)fgetc(fp);
+							printf("%c", cHere);
 							
 							if(program_is_hex_char(cHere) == false){
 								continue;
@@ -349,6 +351,19 @@ int main(void){
 							}
 						
 						}
+						
+						while(true){
+						
+							char cHere = (char)fgetc(fp);
+							printf("%c", cHere);
+							
+							if(cHere == '\n'){
+								break;
+							}
+						
+						}
+						
+						continue;
 					
 					}
 					
@@ -358,9 +373,10 @@ int main(void){
 						dataMode = true;
 						
 						//read to next newline
-							for(int j = 0; j < 10; j++){
+							while(true){
 							
 								char cHere = (char)fgetc(fp);
+								printf("%c", cHere);
 								
 								if(cHere == '\n'){
 									break;
@@ -380,6 +396,7 @@ int main(void){
 							for(int j = 0; j < 10; j++){
 							
 								char cHere = (char)fgetc(fp);
+								printf("%c", cHere);
 								
 								if(cHere == '\n'){
 									break;
@@ -399,11 +416,23 @@ int main(void){
 							
 								//define the label, only take in the first 10 chars
 									int j;
+									bool hitNewLine = false;
 									for(j = 0; j < 10; j++){
 									
 										char cHere = (char)fgetc(fp);
+										printf("%c", cHere);
 										
-										if(cHere == '\n'){
+										if(
+											cHere == '\n'
+										){
+											hitNewLine = true;
+											break;
+										}
+										
+										if(
+											cHere == ' ' ||
+											cHere == '\t'
+										){
 											break;
 										}
 										
@@ -426,6 +455,24 @@ int main(void){
 									cpu.RAM[addr] = 0x00; //00 for now
 									addr++;
 									
+								//read to next newline
+									if(hitNewLine == false){
+										while(true){
+										
+											char cHere = (char)fgetc(fp);
+											printf("%c", cHere);
+											
+											if(cHere == '\n'){
+												break;
+											}
+										
+										}
+									}
+									
+								//reset col so next line works correctly
+									comment = false;
+									col = 0;
+									
 								continue;
 							
 							}
@@ -437,11 +484,20 @@ int main(void){
 									char subLabel[12];
 									
 									int j;
+									bool hitNewLine = false;
 									for(j = 0; j < 10; j++){
 									
 										char cHere = (char)fgetc(fp);
+										printf("%c", cHere);
 										
 										if(cHere == '\n'){
+											break;
+										}
+										
+										if(
+											cHere == ' ' ||
+											cHere == '\t'
+										){
 											break;
 										}
 										
@@ -474,6 +530,24 @@ int main(void){
 										}
 									
 									}
+									
+								//read to next newline
+									if(hitNewLine == false){
+										while(true){
+										
+											char cHere = (char)fgetc(fp);
+											printf("%c", cHere);
+											
+											if(cHere == '\n'){
+												break;
+											}
+										
+										}
+									}
+									
+								//reset col so next line works correctly
+									comment = false;
+									col = 0;
 								
 								continue;
 							
@@ -484,11 +558,20 @@ int main(void){
 							
 								//define the label, only take in the first 10 chars
 									int j;
+									bool hitNewLine = false;
 									for(j = 0; j < 10; j++){
 									
 										char cHere = (char)fgetc(fp);
+										printf("%c", cHere);
 										
 										if(cHere == '\n'){
+											break;
+										}
+										
+										if(
+											cHere == ' ' ||
+											cHere == '\t'
+										){
 											break;
 										}
 										
@@ -504,6 +587,24 @@ int main(void){
 									addr++;
 									cpu.RAM[addr] = (uint8_t)(addr+1);
 									addr++;
+									
+								//read to next newline
+									if(hitNewLine == false){
+										while(true){
+										
+											char cHere = (char)fgetc(fp);
+											printf("%c", cHere);
+											
+											if(cHere == '\n'){
+												break;
+											}
+										
+										}
+									}
+									
+								//reset col so next line works correctly
+									comment = false;
+									col = 0;
 									
 								continue;
 							
@@ -556,6 +657,12 @@ int main(void){
 										}
 										
 									}
+									
+									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x17; }
+									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x18; }
+									
+									else if (strcmp((char*)command, "AND") == 0){ cpu.RAM[addr] = 0x19; }
+									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x1a; }
 							
 								addr++;
 								bytes++;
@@ -595,9 +702,17 @@ int main(void){
 									for(j = 0; j < 10; j++){
 									
 										char cHere = (char)fgetc(fp);
+										printf("%c", cHere);
 										
 										if(cHere == '\n'){
 											hitNewLine = true;
+											break;
+										}
+										
+										if(
+											cHere == ' ' ||
+											cHere == '\t'
+										){
 											break;
 										}
 										
@@ -625,9 +740,10 @@ int main(void){
 									
 								//read to next newline
 									if(hitNewLine == false){
-										for(j = 0; j < 10; j++){
+										while(true){
 										
 											char cHere = (char)fgetc(fp);
+											printf("%c", cHere);
 											
 											if(cHere == '\n'){
 												break;

@@ -30,7 +30,7 @@ typedef struct{
 	uint8_t cycles;
 } INSTRUCTION;
 
-extern INSTRUCTION instructions[32];
+extern INSTRUCTION instructions[64];
 
 typedef struct{
 
@@ -98,12 +98,18 @@ extern CPU cpu;
 	void cpu_ins_BMP();
 	void cpu_ins_SQR();
 	void cpu_ins_ADD();
+	void cpu_ins_SUB();
 	
 	void cpu_ins_JMP();
 	void cpu_ins_JNE();
 	void cpu_ins_JZS();
 	void cpu_ins_JSR();
 	void cpu_ins_RFS();
+	
+	void cpu_ins_AND();
+	void cpu_ins_BOR();
+	void cpu_ins_NDR();
+	void cpu_ins_ORR();
 	
 	void system_restart();
 	void cpu_execute();
