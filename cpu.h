@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdint-gcc.h>
-#include <stdlib.h>
-#include <stdbool.h>
+#include "draw.h"
 
 #define MEM_LENGTH 256
 #define PROG_MEM_LOC 0x80
@@ -84,6 +81,14 @@ extern CPU cpu;
 //cpu base functions
 	void cpu_set_draw_flag(DRAWFLAGS f, bool v);
 	uint8_t cpu_get_drawflag(DRAWFLAGS f);
+	uint8_t cpu_read(uint8_t addr, bool incPCO);
+	void cpu_write(uint8_t addr, uint8_t data);
+	void cpu_stack_push(uint8_t data);
+	uint8_t cpu_stack_pop();
+	uint8_t cpu_reg_val(uint8_t reg);
+	uint8_t cpu_set_reg(uint8_t reg, uint8_t data);
+	uint8_t cpu_set_ir(uint8_t reg, uint8_t data);
+	uint8_t cpu_set_pco(uint8_t data);
 	
 //Instructions
 	void cpu_ins_NOP();
@@ -113,5 +118,3 @@ extern CPU cpu;
 	
 	void system_restart();
 	void cpu_execute();
-
-	void code_disassemble();

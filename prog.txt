@@ -1,0 +1,26 @@
+:start
+
+@output
+LRR R0 R2
+STR R0 R1
+BMP R1
+BMP R2
+SQR R3
+RFS
+
+LRV R3 0a
+LRV R2 F0
+LRV R1 00
+
+:loop
+>output
+JNE -loop
+
+^EE
+JMP -start
+#
+"4
+"c
+"0
+"4
+"  "L "  "E "O "T

@@ -174,25 +174,6 @@
 	}
 	
 /*
-* Get the value in an internal register
-* @param uint8_t reg Which register
-* @return uint8_t
-*/
-	uint8_t cpu_ir_val(uint8_t reg){
-	
-		switch(reg){
-			
-			case 1:
-			default:
-				return cpu.IR1;
-			case 2:
-				return cpu.IR2;
-			
-		}
-	
-	}
-	
-/*
 * Set the value in an internal register
 * @param uint8_t reg Which register
 * @param uint8_t data

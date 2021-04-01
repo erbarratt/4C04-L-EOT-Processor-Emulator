@@ -1,5 +1,5 @@
-#include "draw.h"
 #include "cpu.h"
+#include "draw.h"
 
 char code[MEM_LENGTH][100];
 	

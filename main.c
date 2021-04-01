@@ -2,19 +2,15 @@
 
 int main(void){
 
-	printf("4c04 L EOT CPU Emulator\n");
-	printf("System Booting...\n");
+	printf("4c04 L EOT CPU Emulator\nSystem Booting...");
 
 	system_restart();
 	
-	//sleep(1);
-	
 	program_load();
+	
 	printf("Program Loaded...\n");
 	
 	code_disassemble();
-	
-	//usleep(200000);
 	
 	printf("Opening Window...\n");
 	
@@ -31,7 +27,7 @@ int main(void){
 		
 	//if not set, then probably on only terminal.
 		if (display == NULL) {
-			fprintf(stderr, "Cannot open display. Run from linux desktop GUI or through Xming + putty on Windows.\n");
+			fprintf(stderr, "Cannot open display. Run from linux desktop GUI or through Xming + PuTTy on Windows.\n");
 			exit(1);
 		}
 	
@@ -67,10 +63,10 @@ int main(void){
 		bool autoPlayFast = false;
 	
 	while (1) {
-	
-		if(autoPlaySlow){
+		
+		if(autoPlaySlow || autoPlayFast){
 			
-			usleep(200000); // 0.5s
+			usleep(autoPlaySlow ? 200000 : 2000);
 			
 			//create a random keypress event and send it, so the following XNextEvent catches it
 				XKeyEvent event;
@@ -90,28 +86,6 @@ int main(void){
 				
 				XSendEvent(display, window, True, KeyPressMask, (XEvent *)&event);
 			
-		} else if (autoPlayFast){
-		
-			usleep(2000); // 0.05s
-			
-			//create a random keypress event and send it, so the following XNextEvent catches it
-				XKeyEvent event;
-				event.display     = display;
-				event.window      = window;
-				event.root        = RootWindow(display, screen);
-				event.subwindow   = None;
-				event.time        = CurrentTime;
-				event.x           = 1;
-				event.y           = 1;
-				event.x_root      = 1;
-				event.y_root      = 1;
-				event.same_screen = True;
-				event.keycode     = XKeysymToKeycode(display, 42);
-				event.state       = 0;
-				event.type = KeyPress;
-				
-				XSendEvent(display, window, True, KeyPressMask, (XEvent *)&event);
-		
 		}
 	
 		XNextEvent(display, &evnt);
