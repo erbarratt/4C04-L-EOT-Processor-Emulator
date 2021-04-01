@@ -366,23 +366,9 @@
 				break;
 				
 			//store the value in the register chosen at IR1 into mem location IR2
-				case 1:{
-					switch(cpu.IR1){
-						case 0:
-						default:
-							cpu_write(cpu.IR2, cpu.AR0);
-						break;
-						case 1:
-							cpu_write(cpu.IR2, cpu.AR1);
-						break;
-						case 2:
-							cpu_write(cpu.IR2, cpu.AR2);
-						break;
-						case 3:
-							cpu_write(cpu.IR2, cpu.AR3);
-						break;
-					}
-				} break;
+				case 1:
+					cpu_write(cpu.IR2, cpu_reg_val(cpu.IR1));
+				break;
 		
 		}
 	
@@ -413,23 +399,9 @@
 				break;
 				
 			//store the value in the register chosen at IR1 into mem location IR2
-				case 1:{
-					switch(cpu.IR1){
-						case 0:
-						default:
-							cpu_write(cpu.IR2, cpu.AR0);
-						break;
-						case 1:
-							cpu_write(cpu.IR2, cpu.AR1);
-						break;
-						case 2:
-							cpu_write(cpu.IR2, cpu.AR2);
-						break;
-						case 3:
-							cpu_write(cpu.IR2, cpu.AR3);
-						break;
-					}
-				} break;
+				case 1:
+					cpu_write(cpu.IR2, cpu_reg_val(cpu.IR1));
+				break;
 		
 		}
 	
@@ -622,33 +594,11 @@
 				case 2:
 				{
 				
-					uint16_t temp;
-				
-					switch(cpu.IR1){
-						
-						case 0:
-						default:
-							temp = (uint16_t)((uint16_t)cpu.AR0 + (uint16_t)cpu.IR2 + (uint16_t)cpu.C);
-							// The signed Overflow flag
-							cpu.V = (~((uint16_t)cpu.AR0 ^ (uint16_t)cpu.IR2) & ((uint16_t)cpu.AR0 ^ (uint16_t)temp)) & 0x0080;
-						break;
-						case 1:
-							temp = (uint16_t)((uint16_t)cpu.IR2 + (uint16_t)cpu.AR1 + (uint16_t)cpu.C);
-							// The signed Overflow flag
-							cpu.V = (~((uint16_t)cpu.AR1 ^ (uint16_t)cpu.IR2) & ((uint16_t)cpu.AR1 ^ (uint16_t)temp)) & 0x0080;
-						break;
-						case 2:
-							temp = (uint16_t)((uint16_t)cpu.IR2 + (uint16_t)cpu.AR2 + (uint16_t)cpu.C);
-							// The signed Overflow flag
-							cpu.V = (~((uint16_t)cpu.AR2 ^ (uint16_t)cpu.IR2) & ((uint16_t)cpu.AR2 ^ (uint16_t)temp)) & 0x0080;
-						break;
-						case 3:
-							temp = (uint16_t)((uint16_t)cpu.IR2 + (uint16_t)cpu.AR3 + (uint16_t)cpu.C);
-							// The signed Overflow flag
-							cpu.V = (~((uint16_t)cpu.AR3 ^ (uint16_t)cpu.IR2) & ((uint16_t)cpu.AR3 ^ (uint16_t)temp)) & 0x0080;
-						break;
-						
-					}
+					uint8_t regVal = cpu_reg_val(cpu.IR1);
+					uint16_t temp = (uint16_t)((uint16_t)regVal + (uint16_t)cpu.IR2 + (uint16_t)cpu.C);
+					
+					// The signed Overflow flag
+						cpu.V = (~((uint16_t)regVal ^ (uint16_t)cpu.IR2) & ((uint16_t)regVal ^ (uint16_t)temp)) & 0x0080;
 					
 					// The carry flag out exists in the high byte bit 0
 						cpu.C = temp > 255;
@@ -730,35 +680,9 @@
 			//do subtraction into IR2 setting carry as necessary
 				case 2:
 				{
-				
-					uint16_t temp;
 					uint16_t tempVal = ((uint16_t)cpu.IR2 ^ 0x00FF);
-				
-					switch(cpu.IR1){
-						
-						case 0:
-						default:
-							temp = (uint16_t)((uint16_t)cpu.AR0 + tempVal + (uint16_t)cpu.C);
-							// The signed Overflow flag
-							cpu.V = (~(temp ^ (uint16_t)cpu.AR0) & (temp ^ (uint16_t)tempVal)) & 0x0080;
-						break;
-						case 1:
-							temp = (uint16_t)((uint16_t)cpu.AR1 + tempVal + (uint16_t)cpu.C);
-							// The signed Overflow flag
-							cpu.V = (~(temp ^ (uint16_t)cpu.AR1) & (temp ^ (uint16_t)tempVal)) & 0x0080;
-						break;
-						case 2:
-							temp = (uint16_t)((uint16_t)cpu.AR2 + tempVal + (uint16_t)cpu.C);
-							// The signed Overflow flag
-							cpu.V = (~(temp ^ (uint16_t)cpu.AR2) & (temp ^ (uint16_t)tempVal)) & 0x0080;
-						break;
-						case 3:
-							temp = (uint16_t)((uint16_t)cpu.AR3 + tempVal + (uint16_t)cpu.C);
-							// The signed Overflow flag
-							cpu.V = (~(temp ^ (uint16_t)cpu.AR3) & (temp ^ (uint16_t)tempVal)) & 0x0080;
-						break;
-						
-					}
+					uint8_t regVal = cpu_reg_val(cpu.IR1);
+					uint16_t temp = (uint16_t)((uint16_t)regVal + tempVal + (uint16_t)cpu.C);
 					
 					// The carry flag out exists in the high byte bit 0
 						cpu.C = temp > 255;
