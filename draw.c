@@ -603,7 +603,9 @@ char code[MEM_LENGTH][100];
 			addr++;
 			
 			
-			if(instructions[opcode].operate == &cpu_ins_NOP){
+			if(
+				instructions[opcode].operate == &cpu_ins_NOP
+			){
 			
 				strcpy(code[addr], "---");
 				
@@ -611,7 +613,9 @@ char code[MEM_LENGTH][100];
 				instructions[opcode].operate == &cpu_ins_BMP ||
 				instructions[opcode].operate == &cpu_ins_SQR ||
 				instructions[opcode].operate == &cpu_ins_JMP ||
-				instructions[opcode].operate == &cpu_ins_JNE
+				instructions[opcode].operate == &cpu_ins_JNE ||
+				instructions[opcode].operate == &cpu_ins_JZS ||
+				instructions[opcode].operate == &cpu_ins_JSR
 			){
 			
 				strcpy(code[addr], "---");
