@@ -70,11 +70,11 @@ char code[MEM_LENGTH][100];
 		int msgX = 780 + (int)(200 - (strlen(msg)*10)) / 2;
 		draw_string(display, window, gc, 0x28d9ed, msgX, 30, msg);
 		
-		//instruction name
-			char arMsg3[100] = "Instruction: ";
-			strcat(arMsg3, instructions[cpu.OPC].name);
-			int arMsg3X = 780 + (int)(200 - (strlen(arMsg3)*10)) / 2;
-			draw_string(display, window, gc, 0xFFFFFF, arMsg3X, 60, arMsg3);
+		//instruction name - now seen in code output
+		//	char arMsg3[100] = "Instruction: ";
+		//	strcat(arMsg3, instructions[cpu.OPC].name);
+		//	int arMsg3X = 780 + (int)(200 - (strlen(arMsg3)*10)) / 2;
+			//draw_string(display, window, gc, 0xFFFFFF, arMsg3X, 60, arMsg3);
 		
 		//PCO and OPcode
 			char pcMsg[50] = "PCO-[";
@@ -326,7 +326,7 @@ char code[MEM_LENGTH][100];
 				
 			}
 			
-			strcat(topLine, "  HEX");
+			strcat(topLine, "  HEX -> ASCII");
 			
 			draw_string(display, window, gc, 0x28d9ed, 10, y, topLine);
 			
@@ -360,7 +360,7 @@ char code[MEM_LENGTH][100];
 							
 						}
 						
-						strcat(topLine2, "  HEX");
+						strcat(topLine2, "  HEX -> ASCII");
 						draw_string(display, window, gc, 0x28d9ed, 10, y, topLine2);
 						
 						y += 30;

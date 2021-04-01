@@ -583,10 +583,10 @@ int main(void){
 									
 								//markers are just places in memory, and are ignored at execution
 								//they are always a JMP to just after themselves
-									cpu.RAM[addr] = 0x12; //JMP
-									addr++;
-									cpu.RAM[addr] = (uint8_t)(addr+1);
-									addr++;
+									//cpu.RAM[addr] = 0x12; //JMP
+									//addr++;
+									//cpu.RAM[addr] = (uint8_t)(addr+1);
+									//addr++;
 									
 								//read to next newline
 									if(hitNewLine == false){
@@ -731,7 +731,7 @@ int main(void){
 											
 											//we've found a match, to J represents the start of that subroutine
 											//that will always be 12 XX, so we need to set JSR value to two beyond that
-												cpu.RAM[addr] = (uint8_t)(j+2);
+												cpu.RAM[addr] = (uint8_t)j;
 												addr++;
 											
 											break;
@@ -765,8 +765,9 @@ int main(void){
 						//following char is taken as the value, no matter what
 						if(characterLiteral){
 						
-							i = 1;
-							characterLiteral = false;
+							//reset i and flag so character after this continues to be parsed as normal
+								i = 1;
+								characterLiteral = false;
 						
 							//store the value as the character ascii binary
 								cpu.RAM[addr] = c;
