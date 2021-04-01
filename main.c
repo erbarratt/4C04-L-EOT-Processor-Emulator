@@ -174,6 +174,11 @@ int main(void){
    
 }
 
+/**
+* See if char is valid hex char to convert
+* @param c
+* @return bool
+*/
 	bool program_is_hex_char(uint8_t c){
 		if(
 			c != 'a' &&
@@ -205,6 +210,11 @@ int main(void){
 		return true;
 	}
 	
+/**
+* Get the hex value represented by the ascii char
+* @param c
+* @return uint8_t
+*/
 	uint8_t program_get_hex_char(uint8_t c){
 	
 		//lookup 8 bit value of hex character to store in tmp
@@ -297,7 +307,8 @@ int main(void){
 			bool comment = false;
 			bool dataMode = false;
 			bool characterLiteral = false;
-			
+
+		//process file
 			int i = 1;
 			while(1){
 				
@@ -491,6 +502,7 @@ int main(void){
 										printf("%c", cHere);
 										
 										if(cHere == '\n'){
+											hitNewLine = true;
 											break;
 										}
 										
@@ -565,6 +577,7 @@ int main(void){
 										printf("%c", cHere);
 										
 										if(cHere == '\n'){
+											hitNewLine = true;
 											break;
 										}
 										
@@ -649,12 +662,13 @@ int main(void){
 									else if (strcmp((char*)command, "JSR") == 0){ cpu.RAM[addr] = 0x15; }
 									else if (strcmp((char*)command, "RFS") == 0){
 									
-										cpu.RAM[addr] = 0x16;
-										if(inSubroutineDef){
-											cpu.RAM[lastSubroutineAddr+1] = (uint8_t)(lastSubroutineAddr+3+subroutineLocCount);
-											subroutineLocCount = 0;
-											inSubroutineDef = false;
-										}
+										//RFS means we can close current subroutine count and set where to jump now
+											cpu.RAM[addr] = 0x16;
+											if(inSubroutineDef){
+												cpu.RAM[lastSubroutineAddr+1] = (uint8_t)(lastSubroutineAddr+3+subroutineLocCount);
+												subroutineLocCount = 0;
+												inSubroutineDef = false;
+											}
 										
 									}
 									
@@ -731,7 +745,7 @@ int main(void){
 											
 											//we've found a match, to J represents the start of that subroutine
 											//that will always be 12 XX, so we need to set JSR value to two beyond that
-												cpu.RAM[addr] = (uint8_t)j;
+												cpu.RAM[addr] = (uint8_t)(j);
 												addr++;
 											
 											break;
@@ -763,54 +777,56 @@ int main(void){
 							}
 						
 						//following char is taken as the value, no matter what
-						if(characterLiteral){
-						
-							//reset i and flag so character after this continues to be parsed as normal
-								i = 1;
-								characterLiteral = false;
-						
-							//store the value as the character ascii binary
-								cpu.RAM[addr] = c;
-								addr++;
-								bytes++;
-								if(inSubroutineDef){
-									subroutineLocCount++;
-								}
-						
-						} else {
-			
-							//check this char is in valid hex char set
-								if(program_is_hex_char(c) == false){
-									continue;
-								}
-								
-								tmp = (uint8_t)program_get_hex_char(c);
-					
-							//write only when hex built from both chars in txt file
-								if(i == 1){
-									i++;
-									hi = tmp;
-								} else {
-									lo = tmp;
+							if(characterLiteral){
+							
+								//reset i and flag so character after this continues to be parsed as normal
 									i = 1;
-									
-									//new is hi bit shifted left by four, bitwise OR's with lo
-									//since lo always has 4 leading zeros, the hi 1 bits are always written (one OR the other bit is 1...)
-									new = (uint8_t)(hi << 4) | lo;
-									cpu.RAM[addr] = new;
+									characterLiteral = false;
+							
+								//store the value as the character ascii binary
+									cpu.RAM[addr] = c;
 									addr++;
 									bytes++;
 									if(inSubroutineDef){
 										subroutineLocCount++;
 									}
-								}
-							
-						}
+						
+						//get the hex val and store as byte is on lo pass
+							} else {
+				
+								//check this char is in valid hex char set
+									if(program_is_hex_char(c) == false){
+										continue;
+									}
+									
+									tmp = (uint8_t)program_get_hex_char(c);
+						
+								//write only when hex built from both chars in txt file
+									if(i == 1){
+										i++;
+										hi = tmp;
+									} else {
+										lo = tmp;
+										i = 1;
+										
+										//new is hi bit shifted left by four, bitwise OR's with lo
+										//since lo always has 4 leading zeros, the hi 1 bits are always written (one OR the other bit is 1...)
+										new = (uint8_t)(hi << 4) | lo;
+										cpu.RAM[addr] = new;
+										addr++;
+										bytes++;
+										if(inSubroutineDef){
+											subroutineLocCount++;
+										}
+									}
+								
+							}
 						
 					}
 		
 			}
 			
+		//close file
 			fclose(fp);
 	
 	}
