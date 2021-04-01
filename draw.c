@@ -626,7 +626,11 @@ char code[MEM_LENGTH][100];
 				instructions[opcode].operate == &cpu_ins_LRM ||
 				instructions[opcode].operate == &cpu_ins_LRR ||
 				instructions[opcode].operate == &cpu_ins_STV ||
-				instructions[opcode].operate == &cpu_ins_STR
+				instructions[opcode].operate == &cpu_ins_STR ||
+				instructions[opcode].operate == &cpu_ins_AND ||
+				instructions[opcode].operate == &cpu_ins_BOR ||
+				instructions[opcode].operate == &cpu_ins_NDR ||
+				instructions[opcode].operate == &cpu_ins_ORR
 			){
 			
 				strcpy(code[addr], "---");

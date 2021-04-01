@@ -92,7 +92,7 @@ int main(void){
 			
 		} else if (autoPlayFast){
 		
-			usleep(2000); // 0.5s
+			usleep(2000); // 0.05s
 			
 			//create a random keypress event and send it, so the following XNextEvent catches it
 				XKeyEvent event;
@@ -662,7 +662,9 @@ int main(void){
 									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x18; }
 									
 									else if (strcmp((char*)command, "AND") == 0){ cpu.RAM[addr] = 0x19; }
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x1a; }
+									else if (strcmp((char*)command, "BOR") == 0){ cpu.RAM[addr] = 0x1a; }
+									else if (strcmp((char*)command, "NDR") == 0){ cpu.RAM[addr] = 0x1b; }
+									else if (strcmp((char*)command, "ORR") == 0){ cpu.RAM[addr] = 0x1c; }
 							
 								addr++;
 								bytes++;
