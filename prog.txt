@@ -1,26 +1,23 @@
-:start
+:start                      ;marker for final jump to ensure program loops
 
-@output
-LRR R0 R2
-STR R0 R1
-BMP R1
-BMP R2
-SQR R3
-RFS
+@output                     ;define a subroutine
+LRR R0 R2                   ;load R0 from mem loc stored in R2
+STR R0 R1                   ;store R0 to mem loc stored in R1
+BMP R1                      ;increment R1
+BMP R2                      ;increment R2
+SQR R3                      ;decrement R3
+RFS                         ;return from subroutine
 
-LRV R3 0a
-LRV R2 F0
-LRV R1 00
+LRV R3 0A                   ;load R3 with value 0A [10]
+LRV R2 $F0                  ;load R2 with value F0 (mem loc)
+LRV R1 $00                  ;load R1 with value 00 (mem loc)
 
-:loop
->output
-JNE -loop
+:loop                       ;marker for start of loop
+>output                     ;execute subroutine
+JNE -loop                   ;keep looping until R3 == 0 (loop if Z == 0, break if Z == 1)
 
-^EE
-JMP -start
-#
-"4
-"c
-"0
-"4
-"  "L "  "E "O "T
+^EE                         ;move assembler to write to mem loc EE
+JMP -start                  ;set program to loop via simple jump
+#                           ;set assemble into data mode
+"4 "c "0 "4                 ;data
+"  "L "  "E "O "T           ;data
