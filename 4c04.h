@@ -1,10 +1,10 @@
-#ifndef FOUR_C_OH_FOUR_HEAD
+#ifndef FOUR_C_OH_FOUR_H
 
-	#define FOUR_C_OH_FOUR_HEAD
+	#define FOUR_C_OH_FOUR_H
 
-	#include <stdio.h>
-	#include <stdint-gcc.h>
+	#include <stdint.h>         //uintx_t's
 	#include <stdbool.h>
+	#include <X11/Xlib.h>       //X11
 	
 	#define MEM_LENGTH 256
 	#define PROG_MEM_LOC 0x80
@@ -15,7 +15,9 @@
 	////////////////////////////////////////////////////////////////////////////////////////
 	//CPU
 	
-		//bit field for cpu status
+		/**
+		* bit field for cpu status
+		*/
 			typedef enum
 			{
 			
@@ -31,63 +33,96 @@
 				
 			} DRAWFLAGS;
 		
-		typedef struct{
-			char name[10];
-			char label[50];
-			void (*operate )(void);
-			uint8_t cycles;
-		} INSTRUCTION;
+		/**
+		* Instruction struct
+		* @var struct INSTRUCTION
+		* @param char[] name
+		* @param char[] label
+		* @param void (*operate)
+		* @param uint8_t cycles
+		*/
+			typedef struct{
+				char name[10];
+				char label[50];
+				void (*operate )(void);
+				uint8_t cycles;
+				uint8_t pcoShifts;
+			} INSTRUCTION;
 		
-		extern INSTRUCTION instructions[64];
+		/**
+		* Instruction lookup array
+		*/
+			extern INSTRUCTION instructions[64];
 		
-		typedef struct{
-		
-			//program counter
-				uint8_t PCO;
+		/**
+		* Instruction struct
+		* @var struct INSTRUCTION
+		* @param uint8_t PCO
+		* @param uint8_t STP
+		* @param uint8_t OPC
+		* @param uint8_t CRE
+		* @param uint8_t IR1
+		* @param uint8_t IR2
+		* @param uint8_t AR0
+		* @param uint8_t AR1
+		* @param uint8_t AR2
+		* @param uint8_t AR3
+		* @param uint8_t RAM[MEM_LENGTH]
+		* @param bool c
+		* @param bool v
+		* @param bool z
+		* @param bool n
+		* @param INSTRUCTION INS
+		* @param uint8_t lastOpAddr
+		*/
+			typedef struct{
+			
+				//program counter
+					uint8_t PCO;
+					
+				//stack pointer
+					uint8_t STP;
 				
-			//stack pointer
-				uint8_t STP;
+				//current opcode
+					uint8_t OPC;
+					
+				//remaining cycles
+					uint8_t CRE;
 			
-			//current opcode
-				uint8_t OPC;
+				//internal registers, 8bits
+					uint8_t IR1;
+					uint8_t IR2;
 				
-			//remaining cycles
-				uint8_t CRE;
+				//addressable registers, 8 bits
+					uint8_t AR0;
+					uint8_t AR1;
+					uint8_t AR2;
+					uint8_t AR3;
+				
+				//ROM + RAM
+					uint8_t RAM[MEM_LENGTH];
+				
+				//Carry flag
+					bool C;
+				
+				//Zero Flag
+					bool Z;
+				
+				//Overflow
+					bool V;
+					
+				//Negative Flag
+					bool N;
+				
+				//current instruction
+					INSTRUCTION INS;
+					
+				//last op address
+					uint8_t lastOpAddr;
+				
+			} CPU;
 		
-			//internal registers, 8bits
-				uint8_t IR1;
-				uint8_t IR2;
-			
-			//addressable registers, 8 bits
-				uint8_t AR0;
-				uint8_t AR1;
-				uint8_t AR2;
-				uint8_t AR3;
-			
-			//ROM + RAM
-				uint8_t RAM[MEM_LENGTH];
-			
-			//Carry flag
-				bool C;
-			
-			//Zero Flag
-				bool Z;
-			
-			//Overflow
-				bool V;
-				
-			//Negative Flag
-				bool N;
-			
-			//current instruction
-				INSTRUCTION INS;
-				
-			//last op address
-				uint8_t lastOpAddr;
-			
-		} CPU;
-		
-		extern CPU cpu;
+			extern CPU cpu;
 		
 		//cpu base functions
 			void cpu_set_draw_flag(DRAWFLAGS f, bool v);
@@ -107,6 +142,7 @@
 			void cpu_ins_LRV();
 			void cpu_ins_LRM();
 			void cpu_ins_LRR();
+			void cpu_ins_LRT();
 			
 			void cpu_ins_STV();
 			void cpu_ins_STR();
@@ -117,8 +153,7 @@
 			void cpu_ins_SUB();
 			
 			void cpu_ins_JMP();
-			void cpu_ins_JNE();
-			void cpu_ins_JZS();
+			void cpu_ins_JOC();
 			void cpu_ins_JSR();
 			void cpu_ins_RFS();
 			
@@ -126,6 +161,8 @@
 			void cpu_ins_BOR();
 			void cpu_ins_NDR();
 			void cpu_ins_ORR();
+			void cpu_ins_XOV();
+			void cpu_ins_XOR();
 			
 			void system_restart();
 			void cpu_execute();
@@ -135,7 +172,9 @@
 	////////////////////////////////////////////////////////////////////////////////////////
 	//DRAW
 	
-		void draw_hex(uint32_t hex, size_t size, char * dest);
+		void console_print(char * msg, int error);
+		void draw_hex(uint32_t hex, uint8_t size, char * dest);
+		uint8_t find_hex_from_command(uint8_t * command);
 		void draw_string(Display * display, Window window, GC gc, unsigned long color, int x, int y, char * str);
 		void draw_cpu(Display * display, Window window, GC gc);
 		void draw_ram(Display * display, Window window, GC gc);

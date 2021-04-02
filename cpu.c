@@ -8,46 +8,38 @@
 * Instruction opcode lookup table
 */
 	INSTRUCTION instructions[64] = {
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //00
+		{"NOP", "No Operation",                        &cpu_ins_NOP, 2, 0},       //00
 		
-		{"LRV", "Load Register, from Value",           &cpu_ins_LRV, 3},       //01 [#reg0-2] [#val]
-		{"LRM", "Load Register, from Memory",          &cpu_ins_LRM, 4},       //02 [#reg0-2] [$mem]
-		{"LRR", "Load Register, from Register",        &cpu_ins_LRR, 4},       //03 [#reg0-2] [#reg0-2]
+		{"LRV", "Load Register, from Value",           &cpu_ins_LRV, 3, 2},       //01 [#reg0-2] [#val]
+		{"LRM", "Load Register, from Memory",          &cpu_ins_LRM, 4, 2},       //02 [#reg0-2] [$mem]
+		{"LRR", "Load Register, from Register",        &cpu_ins_LRR, 4, 2},       //03 [#reg0-2] [#reg0-2]
+		{"LRT", "Load Register, Transfer",             &cpu_ins_LRT, 4, 2},       //04 [#reg0-2] [#reg0-2]
 		
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //04
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //05
+		{"STV", "Store Register, to Mem Value",        &cpu_ins_STV, 3, 2},       //05 [#reg0-2] [$mem]
+		{"STR", "Store Register, to Register Mem",     &cpu_ins_STR, 4, 2},       //06 [#reg0-2] [#reg0-2] Stores first reg in mem loc of second reg
 		
-		{"STV", "Store Register, from Memory",         &cpu_ins_STV, 3},       //06 [#reg0-2] [$mem]
-		{"STR", "Store Register, from Register",       &cpu_ins_STR, 4},       //07 [#reg0-2] [#reg0-2] Stores first reg in mem loc of second reg
+		{"BMP", "Bump Register",                       &cpu_ins_BMP, 4, 1},       //07 [#reg0-2]++
+		{"SQR", "Squash Register",                     &cpu_ins_SQR, 4, 1},       //08 [#reg0-2]--
+
+		{"ADD", "Add RX to Ry, Store in RX",           &cpu_ins_ADD, 2, 2},       //09 [#reg0-2] [#reg0-2] Stores in first reg defined
+		{"SUB", "Sub RY from RX, Store in RX",         &cpu_ins_SUB, 2, 2},       //0a [#reg0-2] [#reg0-2] Stores in first reg defined
 		
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //08
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //09
+		{"JMP", "Jump, from Value",                    &cpu_ins_JMP, 2, 1},       //0b [$mem]
+		{"JOC", "Jump on Condition",                   &cpu_ins_JOC, 3, 2},       //0c [#con] [$mem]
+		{"JSR", "Jump to Subroutine",                  &cpu_ins_JSR, 3, 1},       //0d [$mem]
+		{"RFS", "Return from Subroutine",              &cpu_ins_RFS, 2, 0},       //0e
 		
-		{"BMP", "Bump Register",                       &cpu_ins_BMP, 4},       //0a [#reg0-2]++
-		{"SQR", "Squash Register",                     &cpu_ins_SQR, 4},       //0b [#reg0-2]--
+		{"AND", "Bitwise AND, from Value",             &cpu_ins_AND, 4, 2},       //0f [#reg0-2] [#val]
+		{"BOR", "Bitwise OR, from Value",              &cpu_ins_BOR, 4, 2},       //10 [#reg0-2] [#val]
+		{"NDR", "Bitwise AND, from Register",          &cpu_ins_NDR, 4, 2},       //11 [#reg0-2] [#reg0-2] Stores in first reg defined
+		{"ORR", "Bitwise OR, from Register",           &cpu_ins_ORR, 4, 2},       //12 [#reg0-2] [#reg0-2] Stores in first reg defined
+		{"XOV", "Bitwise XOR, from Value",             &cpu_ins_XOV, 4, 2},       //13 [#reg0-2] [#reg0-2] Stores in first reg defined
+		{"XOR", "Bitwise XOR, from Register",          &cpu_ins_XOR, 4, 2},       //14 [#reg0-2] [#reg0-2] Stores in first reg defined
 		
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //0c
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //0d
+		//TODO:
+		//push reg to stack
+		//pop stack to reg
 		
-		{"ADD", "Add RX to Ry, Store in RX",           &cpu_ins_ADD, 2},       //0e [#reg0-2] [#reg0-2] Stores in first reg defined
-		{"SUB", "Sub RY from RX, Store in RX",         &cpu_ins_SUB, 2},       //0f [#reg0-2] [#reg0-2] Stores in first reg defined
-		
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //10
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //11
-		
-		{"JMP", "Jump, from Value",                    &cpu_ins_JMP, 2},       //12 [$mem]
-		{"JNE", "Jump if Zero not set",                &cpu_ins_JNE, 2},       //13 [$mem]
-		{"JZS", "Jump if Zero set",                    &cpu_ins_JZS, 2},       //14 [$mem]
-		{"JSR", "Jump to Subroutine",                  &cpu_ins_JSR, 3},       //15 [$mem]
-		{"RFS", "Return from Subroutine",              &cpu_ins_RFS, 2},       //16
-		
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //17
-		{"NOP", "No Operation",                        &cpu_ins_NOP, 2},       //18
-		
-		{"AND", "Bitwise AND, from Value",             &cpu_ins_AND, 4},       //19 [#reg0-2] [#val]
-		{"BOR", "Bitwise OR, from Value",              &cpu_ins_BOR, 4},       //1a [#reg0-2] [#val]
-		{"NDR", "Bitwise AND, from Register",          &cpu_ins_NDR, 4},       //1b [#reg0-2] [#reg0-2] Stores in first reg defined
-		{"ORR", "Bitwise OR, from Register",           &cpu_ins_ORR, 4},       //1c [#reg0-2] [#reg0-2] Stores in first reg defined
 	};
 	
 /*
@@ -292,7 +284,7 @@
 	}
 	
 /*
-* Instruction: Load register from Register
+* Instruction: Load register from mem loc in other Register
 * 4 cycles
 * Z,N
 * @return void
@@ -314,6 +306,42 @@
 			//set IR2 to be the value of the register set in IR2
 				case 2:
 					cpu_set_ir(2, cpu_read(cpu_reg_val(cpu.IR2), false));
+				break;
+				
+			//load the value at IR2 into register chosen in IR1
+				case 1:
+					cpu_set_reg(cpu.IR1, cpu.IR2);
+					cpu.Z = (cpu.IR2 == 0x00);
+					cpu.N = ((cpu.IR2 & 0x0080) == 0x0080);
+				break;
+		
+		}
+		
+	}
+	
+/*
+* Instruction: Load register by transfer from another register
+* 4 cycles
+* Z,N
+* @return void
+*/
+	void cpu_ins_LRT(){
+	
+		switch(cpu.CRE){
+			
+			//load IR1 with the identifier for which register to finally load into
+				case 4:
+					cpu_set_ir(1, cpu_read(cpu.PCO, true));
+				break;
+				
+			//Set IR2 to be the reigster to take the value from
+				case 3:
+					cpu_set_ir(2, cpu_read(cpu.PCO, true));
+				break;
+				
+			//set IR2 to be the value of the register set in IR2
+				case 2:
+					cpu_set_ir(2, cpu_reg_val(cpu.IR2));
 				break;
 				
 			//load the value at IR2 into register chosen in IR1
@@ -711,55 +739,88 @@
 	
 	}
 	
-	
 /*
 * Instruction: Jump if Zero = 0
 * 2 cycles
 * @return void
 */
-	void cpu_ins_JNE(){
+	void cpu_ins_JOC(){
 	
 		switch(cpu.CRE){
 		
-			//load IR1 with memory address to jump to
+			//load IR1 with the condition for jump
+				case 3:
+					cpu_set_ir(1, cpu_read(cpu.PCO, true));break;
+				
+			//load IR2 with the location to jump to
 				case 2:
-					cpu_set_ir(1, cpu_read(cpu.PCO, true));
+					cpu_set_ir(2, cpu_read(cpu.PCO, true));
 				break;
 				
 			//Set PCO on condition
 				case 1:{
 				
-					//only set PCO if zero flag not set
-					if(cpu.Z == false){
-						cpu_set_pco(cpu.IR1);
-					}
+					switch(cpu.IR1){
 					
-				} break;
-		
-		}
-	
-	}
-	
-/*
-* Instruction: Jump if Zero = 1
-* 2 cycles
-* @return void
-*/
-	void cpu_ins_JZS(){
-	
-		switch(cpu.CRE){
-		
-			//load IR1 with memory address to jump to
-				case 2:
-					cpu_set_ir(1, cpu_read(cpu.PCO, true));
-				break;
-				
-			//Set PCO on condition
-				case 1:{
-				
-					//only set PCO if zero flag not set
-					if(cpu.Z == true){
-						cpu_set_pco(cpu.IR1);
+						//Not empty, Z = 0
+							case 1:
+								if(cpu.Z == false){
+									cpu_set_pco(cpu.IR2);
+								}
+							break;
+							
+						//empty, Z = 1
+							case 2:
+								if(cpu.Z == true){
+									cpu_set_pco(cpu.IR2);
+								}
+							break;
+							
+						//No Carry, C = 0
+							case 3:
+								if(cpu.C == false){
+									cpu_set_pco(cpu.IR2);
+								}
+							break;
+							
+						//Carry set, C = 1
+							case 4:
+								if(cpu.C == true){
+									cpu_set_pco(cpu.IR2);
+								}
+							break;
+							
+						//Not Negative, N = 0
+							case 5:
+								if(cpu.N == false){
+									cpu_set_pco(cpu.IR2);
+								}
+							break;
+							
+						//Negative set, N = 1
+							case 6:
+								if(cpu.N == true){
+									cpu_set_pco(cpu.IR2);
+								}
+							break;
+							
+						//Not Overflowed, V = 0
+							case 7:
+								if(cpu.V == false){
+									cpu_set_pco(cpu.IR2);
+								}
+							break;
+							
+						//Overflowed set, V = 1
+							case 8:
+								if(cpu.V == true){
+									cpu_set_pco(cpu.IR2);
+								}
+							break;
+							
+						default:
+							//don't jump as condition not defined
+						break;
 					}
 					
 				} break;
@@ -950,6 +1011,78 @@
 			//do the bitwise and using val from reg defined in IR1
 				case 2:
 					cpu_set_ir(2, cpu_reg_val(cpu.IR1) | cpu_reg_val(cpu.IR2));
+				break;
+			
+			//store back to original register
+				case 1:
+					cpu_set_reg(cpu.IR1, cpu.IR2);
+					//now zero?
+						cpu.Z = (cpu.IR2 == 0);
+					//negative?
+						cpu.N = ((cpu.IR2 & 0x0080) == 0x0080);
+				break;
+		}
+	
+	}
+	
+/*
+* Instruction: Bitwise XOR
+* 4 cycles
+* @return void
+*/
+	void cpu_ins_XOV(){
+	
+		switch(cpu.CRE){
+		
+			//load IR1 with the identifier for which register to do bitwise AND on
+				case 4:
+					cpu_set_ir(1, cpu_read(cpu.PCO, true));
+				break;
+				
+			//load IR2 with the second value of the bitwise AND
+				case 3:
+					cpu_set_ir(2, cpu_read(cpu.PCO, true));
+				break;
+				
+			//do the bitwise and using val from reg defined in IR1
+				case 2:
+					cpu_set_ir(2, cpu.IR2 ^ cpu_reg_val(cpu.IR1));
+				break;
+			
+			//store back to original register
+				case 1:
+					cpu_set_reg(cpu.IR1, cpu.IR2);
+					//now zero?
+						cpu.Z = (cpu.IR2 == 0);
+					//negative?
+						cpu.N = ((cpu.IR2 & 0x0080) == 0x0080);
+				break;
+		}
+	
+	}
+	
+/*
+* Instruction: Bitwise XOR between registers
+* 4 cycles
+* @return void
+*/
+	void cpu_ins_XOR(){
+	
+		switch(cpu.CRE){
+		
+			//load IR1 with the identifier for which register to do bitwise AND on
+				case 4:
+					cpu_set_ir(1, cpu_read(cpu.PCO, true));
+				break;
+				
+			//load IR2 with the second value of the bitwise AND
+				case 3:
+					cpu_set_ir(2, cpu_read(cpu.PCO, true));
+				break;
+				
+			//do the bitwise and using val from reg defined in IR1
+				case 2:
+					cpu_set_ir(2, cpu_reg_val(cpu.IR1) ^ cpu_reg_val(cpu.IR2));
 				break;
 			
 			//store back to original register

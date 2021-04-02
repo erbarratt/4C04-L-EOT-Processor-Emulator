@@ -14,7 +14,7 @@ LRV R1 $00                  ;load R1 with value 00 (mem loc)
 
 :loop                       ;marker for start of loop
 >output                     ;execute subroutine
-JNE -loop                   ;keep looping until R3 == 0 (loop if Z == 0, break if Z == 1)
+JOC 01 -loop                ;keep looping until R3 == 0 (loop if Z == 0, break if Z == 1)
 
 ^EE                         ;move assembler to write to mem loc EE
 JMP -start                  ;set program to loop via simple jump

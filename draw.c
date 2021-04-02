@@ -1,17 +1,32 @@
-#include <string.h>
-#include <stdlib.h>
-#include <X11/Xlib.h>
+#include <stdio.h>      //print, snrprintf, sprintf, fprintf
+#include <string.h>     //strcat, strcmp
+#include <stdlib.h>     //exit
 #include "4c04.h"
 
 char code[MEM_LENGTH][100];
+
+/**
+* Print to console
+* @return void
+*/
+	void console_print(char * msg, int error){
 	
+		if(error == 1){
+			fprintf(stderr, "%s", msg);
+			exit(1);
+		} else {
+			printf("%s", msg);
+		}
+		
+	}
+
 /**
 * Pust hex string in dest string by usage:
 * char dest[size+1];
 * draw_hex((uint32_t)hex, size, dest);
 * @return void
 */
-	void draw_hex(uint32_t hex, size_t size, char * dest) {
+	void draw_hex(uint32_t hex, uint8_t size, char * dest) {
 	
 		//clamp size to at least 1 char
 			size = (size < 1) ? 1 : size;
@@ -30,15 +45,31 @@ char code[MEM_LENGTH][100];
 			}
 			
 		//read the hex number into the tmp string by size+1 length in the format above
-			snprintf(tmp, size+1, format, hex);
+			snprintf(tmp, (size_t)(size+1), format, hex);
 			
 		//set last char as string null
 			tmp[size] = '\0';
 			
 		//copy those bytes into the destination string
-			strncpy(dest, tmp, size+1);
+			strncpy(dest, tmp, (size_t)(size+1));
 			
 	}
+	
+	uint8_t find_hex_from_command(uint8_t * command){
+	
+		for(uint16_t k = 0; k < 64; k++){
+			
+			if(strcmp((char*)command, instructions[k].name) == 0){
+				return (uint8_t)k;
+				break;
+			}
+			
+		}
+		
+		return 0;
+	
+	}
+	
 	
 /**
 * Draw a string to the window at a given location and color
@@ -328,7 +359,7 @@ char code[MEM_LENGTH][100];
 				
 			}
 			
-			strcat(topLine, "  HEX -> ASCII");
+			strcat(topLine, "      HEX > ASCII");
 			
 			draw_string(display, window, gc, 0x28d9ed, 10, y, topLine);
 			
@@ -337,10 +368,15 @@ char code[MEM_LENGTH][100];
 			
 			for (int row = 0; row < 16; row++){
 			
+				//shift stack down a bit
+					if(row == 7){
+						y += 15;
+					}
+			
 				//split memory into two blocks
 					if(row == 8){
 					
-						y += 30;
+						y += 15;
 						
 						//draw mem table header in cyan
 						char topLine2[120] = " ROM";
@@ -362,7 +398,7 @@ char code[MEM_LENGTH][100];
 							
 						}
 						
-						strcat(topLine2, "  HEX -> ASCII");
+						strcat(topLine2, "      HEX > ASCII");
 						draw_string(display, window, gc, 0x28d9ed, 10, y, topLine2);
 						
 						y += 30;
@@ -425,6 +461,14 @@ char code[MEM_LENGTH][100];
 					}
 					
 					strcat(line,"|");
+				
+					if(row == 7){
+					
+						char * msg = "<- Stack";
+						int msgX = 780 + (int)(200 - (strlen(msg)*10)) / 2;
+						draw_string(display, window, gc, 0x28d9ed, msgX, (9*30)+15, msg);
+					
+					}
 				
 				//draw line to screen
 					draw_string(display, window, gc, 0xffffff, 50, y, line);
@@ -564,7 +608,7 @@ char code[MEM_LENGTH][100];
 		
 		char * msg = "Press Space to step through CPU Cycles. Q = Quit, R = Reset, A = Slow Auto, F = Fast Auto.";
 		int msgX = (int)(1000 - (strlen(msg)*10)) / 2;
-		draw_string(display, window, gc, 0xFFFFFF, msgX, 630, msg);
+		draw_string(display, window, gc, 0xFFFFFF, msgX, 615, msg);
 	
 	}
 	
@@ -583,71 +627,45 @@ char code[MEM_LENGTH][100];
 			strcpy(code[i], line);
 		}
 	
-		uint16_t addr = PROG_MEM_LOC;
-		uint16_t lineAddr;
+		//start at program address
+			uint16_t addr = PROG_MEM_LOC;
+			uint16_t lineAddr;
 		
 		while(addr < MEM_LENGTH){
 		
-			lineAddr = addr;
-			char line[100] = "$";
-			char hashTemp[5]; //+1 for \0
-			draw_hex(addr, 2, hashTemp);
-			strcat(line, hashTemp);
-			strcat(line, ": ");
+			//start line string
+				lineAddr = addr;
+				char line[100] = "$";
+				char hashTemp[5]; //+1 for \0
+				draw_hex(addr, 2, hashTemp);
+				strcat(line, hashTemp);
+				strcat(line, ": ");
 			
-			uint8_t opcode = cpu.RAM[addr];
-			strcat(line, instructions[opcode].name);
-			
-			char cycles[10];
-			sprintf(cycles, " c%d", instructions[opcode].cycles);
-			strcat(line, cycles);
-			
-			addr++;
-			
-			
-			if(
-				instructions[opcode].operate == &cpu_ins_NOP
-			){
-			
-				strcpy(code[addr], "---");
+				uint8_t opcode = cpu.RAM[addr];
+				strcat(line, instructions[opcode].name);
 				
-			} else if(
-				instructions[opcode].operate == &cpu_ins_BMP ||
-				instructions[opcode].operate == &cpu_ins_SQR ||
-				instructions[opcode].operate == &cpu_ins_JMP ||
-				instructions[opcode].operate == &cpu_ins_JNE ||
-				instructions[opcode].operate == &cpu_ins_JZS ||
-				instructions[opcode].operate == &cpu_ins_JSR
-			){
+				char cycles[10];
+				sprintf(cycles, " c%d", instructions[opcode].cycles);
+				strcat(line, cycles);
 			
-				strcpy(code[addr], "---");
+			//get next addr
 				addr++;
 			
-			} else if(
-				instructions[opcode].operate == &cpu_ins_LRV ||
-				instructions[opcode].operate == &cpu_ins_LRM ||
-				instructions[opcode].operate == &cpu_ins_LRR ||
-				instructions[opcode].operate == &cpu_ins_STV ||
-				instructions[opcode].operate == &cpu_ins_STR ||
-				instructions[opcode].operate == &cpu_ins_AND ||
-				instructions[opcode].operate == &cpu_ins_BOR ||
-				instructions[opcode].operate == &cpu_ins_NDR ||
-				instructions[opcode].operate == &cpu_ins_ORR
-			){
+			//use instructions array to fill in the mem locations where data and not opcodes are
+				for(int i = 0; i < instructions[opcode].pcoShifts; i++){
+				
+					strcpy(code[addr], "---");
+					addr++;
+				
+				}
 			
-				strcpy(code[addr], "---");
-				addr++;
-				strcpy(code[addr], "---");
-				addr++;
-			
-			}
-			
-			strcpy(code[lineAddr], line);
+			//write that line to code array
+				strcpy(code[lineAddr], line);
 		
 		}
 		
 		for(uint16_t i = PROG_MEM_LOC; i < MEM_LENGTH; i++){
-			//printf("%s\n", code[i]);
+			//	printf("%s\n", code[i]);
 		}
 	
 	}
@@ -758,7 +776,7 @@ char code[MEM_LENGTH][100];
 			fp = fopen("prog.txt", "r");
 			
 			if (fp == NULL){
-				printf("No Assembly File 'prog.txt'. Closing...\n");
+				//printf("No Assembly File 'prog.txt'. Closing...\n");
 				exit(1);
 			}
 		
@@ -792,7 +810,7 @@ char code[MEM_LENGTH][100];
 				
 				//get next char
 					c = (uint8_t)fgetc(fp);
-					printf("%c", c);
+					//printf("%c", c);
 		
 				//check if end of file or end of memory now
 					if(feof(fp) || bytes > 128){
@@ -824,7 +842,7 @@ char code[MEM_LENGTH][100];
 						while(1){
 						
 							uint8_t cHere = (uint8_t)fgetc(fp);
-							printf("%c", cHere);
+							//printf("%c", cHere);
 							
 							if(program_is_hex_char(cHere) == false){
 								continue;
@@ -844,7 +862,7 @@ char code[MEM_LENGTH][100];
 						while(true){
 						
 							char cHere = (char)fgetc(fp);
-							printf("%c", cHere);
+							//printf("%c", cHere);
 							
 							if(cHere == '\n'){
 								break;
@@ -865,7 +883,7 @@ char code[MEM_LENGTH][100];
 							while(true){
 							
 								char cHere = (char)fgetc(fp);
-								printf("%c", cHere);
+								//printf("%c", cHere);
 								
 								if(cHere == '\n'){
 									break;
@@ -885,7 +903,7 @@ char code[MEM_LENGTH][100];
 							for(int j = 0; j < 10; j++){
 							
 								char cHere = (char)fgetc(fp);
-								printf("%c", cHere);
+								//printf("%c", cHere);
 								
 								if(cHere == '\n'){
 									break;
@@ -909,7 +927,7 @@ char code[MEM_LENGTH][100];
 									for(j = 0; j < 10; j++){
 									
 										char cHere = (char)fgetc(fp);
-										printf("%c", cHere);
+										//printf("%c", cHere);
 										
 										if(
 											cHere == '\n'
@@ -939,7 +957,8 @@ char code[MEM_LENGTH][100];
 									inSubroutineDef = true;
 									lastSubroutineAddr = addr;
 									
-									cpu.RAM[addr] = 0x12; //JMP
+									uint8_t commandHere[4] = "JMP";
+									cpu.RAM[addr] = find_hex_from_command(commandHere);
 									addr++;
 									cpu.RAM[addr] = 0x00; //00 for now
 									addr++;
@@ -949,7 +968,7 @@ char code[MEM_LENGTH][100];
 										while(true){
 										
 											char cHere = (char)fgetc(fp);
-											printf("%c", cHere);
+											//printf("%c", cHere);
 											
 											if(cHere == '\n'){
 												break;
@@ -977,7 +996,7 @@ char code[MEM_LENGTH][100];
 									for(j = 0; j < 10; j++){
 									
 										char cHere = (char)fgetc(fp);
-										printf("%c", cHere);
+										//printf("%c", cHere);
 										
 										if(cHere == '\n'){
 											hitNewLine = true;
@@ -1004,7 +1023,8 @@ char code[MEM_LENGTH][100];
 											
 											//we've found a match, to J represents the start of that subroutine
 											//that will always be 12 XX, so we need to set JSR value to two beyond that
-												cpu.RAM[addr] = 0x15; //JSR
+												uint8_t commandHere[4] = "JSR";
+												cpu.RAM[addr] = find_hex_from_command(commandHere); //JSR
 												addr++;
 												cpu.RAM[addr] = (uint8_t)(j+2);
 												addr++;
@@ -1026,7 +1046,7 @@ char code[MEM_LENGTH][100];
 										while(true){
 										
 											char cHere = (char)fgetc(fp);
-											printf("%c", cHere);
+											//printf("%c", cHere);
 											
 											if(cHere == '\n'){
 												break;
@@ -1052,7 +1072,7 @@ char code[MEM_LENGTH][100];
 									for(j = 0; j < 10; j++){
 									
 										char cHere = (char)fgetc(fp);
-										printf("%c", cHere);
+										//printf("%c", cHere);
 										
 										if(cHere == '\n'){
 											hitNewLine = true;
@@ -1084,7 +1104,7 @@ char code[MEM_LENGTH][100];
 										while(true){
 										
 											char cHere = (char)fgetc(fp);
-											printf("%c", cHere);
+											//printf("%c", cHere);
 											
 											if(cHere == '\n'){
 												break;
@@ -1107,56 +1127,18 @@ char code[MEM_LENGTH][100];
 							if(col == 2){
 							
 								//find instruction and write as it's hex equivalent
-									if(strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x00; }
-									
-									else if (strcmp((char*)command, "LRV") == 0){ cpu.RAM[addr] = 0x01; }
-									else if (strcmp((char*)command, "LRM") == 0){ cpu.RAM[addr] = 0x02; }
-									else if (strcmp((char*)command, "LRR") == 0){ cpu.RAM[addr] = 0x03; }
-									
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x04; }
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x05; }
-									
-									else if (strcmp((char*)command, "STV") == 0){ cpu.RAM[addr] = 0x06; }
-									else if (strcmp((char*)command, "STR") == 0){ cpu.RAM[addr] = 0x07; }
-									
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x08; }
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x09; }
-									
-									else if (strcmp((char*)command, "BMP") == 0){ cpu.RAM[addr] = 0x0a; }
-									else if (strcmp((char*)command, "SQR") == 0){ cpu.RAM[addr] = 0x0b; }
-									
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x0c; }
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x0d; }
-									
-									else if (strcmp((char*)command, "ADD") == 0){ cpu.RAM[addr] = 0x0e; }
-									else if (strcmp((char*)command, "SUB") == 0){ cpu.RAM[addr] = 0x0f; }
-									
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x10; }
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x11; }
-									
-									else if (strcmp((char*)command, "JMP") == 0){ cpu.RAM[addr] = 0x12; }
-									else if (strcmp((char*)command, "JNE") == 0){ cpu.RAM[addr] = 0x13; }
-									else if (strcmp((char*)command, "JZS") == 0){ cpu.RAM[addr] = 0x14; }
-									else if (strcmp((char*)command, "JSR") == 0){ cpu.RAM[addr] = 0x15; }
-									else if (strcmp((char*)command, "RFS") == 0){
-									
-										//RFS means we can close current subroutine count and set where to jump now
-											cpu.RAM[addr] = 0x16;
-											if(inSubroutineDef){
-												cpu.RAM[lastSubroutineAddr+1] = (uint8_t)(lastSubroutineAddr+3+subroutineLocCount);
-												subroutineLocCount = 0;
-												inSubroutineDef = false;
-											}
+									cpu.RAM[addr] = find_hex_from_command(command);
+								
+								//RFS means we can close current subroutine count and set where to jump now
+									if (strcmp((char*)command, "RFS") == 0){
+										
+										if(inSubroutineDef){
+											cpu.RAM[lastSubroutineAddr+1] = (uint8_t)(lastSubroutineAddr+3+subroutineLocCount);
+											subroutineLocCount = 0;
+											inSubroutineDef = false;
+										}
 										
 									}
-									
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x17; }
-									else if (strcmp((char*)command, "NOP") == 0){ cpu.RAM[addr] = 0x18; }
-									
-									else if (strcmp((char*)command, "AND") == 0){ cpu.RAM[addr] = 0x19; }
-									else if (strcmp((char*)command, "BOR") == 0){ cpu.RAM[addr] = 0x1a; }
-									else if (strcmp((char*)command, "NDR") == 0){ cpu.RAM[addr] = 0x1b; }
-									else if (strcmp((char*)command, "ORR") == 0){ cpu.RAM[addr] = 0x1c; }
 							
 								addr++;
 								bytes++;
@@ -1196,7 +1178,7 @@ char code[MEM_LENGTH][100];
 									for(j = 0; j < 10; j++){
 									
 										char cHere = (char)fgetc(fp);
-										printf("%c", cHere);
+										//printf("%c", cHere);
 										
 										if(cHere == '\n'){
 											hitNewLine = true;
@@ -1237,7 +1219,7 @@ char code[MEM_LENGTH][100];
 										while(true){
 										
 											char cHere = (char)fgetc(fp);
-											printf("%c", cHere);
+											//printf("%c", cHere);
 											
 											if(cHere == '\n'){
 												break;
