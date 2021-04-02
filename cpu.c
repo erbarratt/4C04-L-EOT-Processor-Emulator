@@ -1,4 +1,4 @@
-#include "cpu.h"
+#include "4c04.h"
 
 //main CPU structure
 	DRAWFLAGS drawflags;

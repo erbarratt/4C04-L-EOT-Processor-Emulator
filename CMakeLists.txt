@@ -14,6 +14,6 @@ message(STATUS "X11_LIBRARIES = ${X11_LIBRARIES}")
 include_directories(${X11_INCLUDE_DIR})
 
 add_executable(
-               4c04 main.c main.h cpu.h cpu.c draw.c draw.h)
+               4c04 4c04.c 4c04.h cpu.c draw.c)
 
 target_link_libraries(4c04 X11)
