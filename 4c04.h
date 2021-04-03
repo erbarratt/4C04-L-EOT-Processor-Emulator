@@ -171,9 +171,16 @@
 	////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////
 	//DRAW
+
+		#define COL_WHITE 0xffffff
+		#define COL_ORANGE 0xff8146
+		#define COL_CYAN 0x28d9ed
+		#define COL_MAGENTA 0xFF00E8
+		#define COL_GREEN 0x30cc00
+		#define COL_RED 0xd81616
 	
 		void console_print(char * msg, int error);
-		void draw_hex(uint32_t hex, uint8_t size, char * dest);
+		char * hex(uint32_t hex, size_t size, char * dest);
 		uint8_t find_hex_from_command(uint8_t * command);
 		void draw_string(Display * display, Window window, GC gc, unsigned long color, int x, int y, char * str);
 		void draw_cpu(Display * display, Window window, GC gc);

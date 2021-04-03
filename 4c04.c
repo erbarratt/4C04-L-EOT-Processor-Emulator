@@ -103,7 +103,7 @@ int main(void){
 		
 		if(autoPlaySlow || autoPlayFast){
 			
-			usleep(autoPlaySlow ? 200000 : 2000);
+			usleep(autoPlaySlow ? 200000 : 500);
 			
 			//create a random keypress event and send it, so the following XNextEvent catches it
 				XKeyEvent event;

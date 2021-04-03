@@ -1,6 +1,7 @@
 #include <stdio.h>      //print, snrprintf, sprintf, fprintf
 #include <string.h>     //strcat, strcmp
 #include <stdlib.h>     //exit
+#include <stdarg.h>     //va lists
 #include "4c04.h"
 
 char code[MEM_LENGTH][100];
@@ -19,14 +20,38 @@ char code[MEM_LENGTH][100];
 		}
 		
 	}
+	
+/*
+* Multiple concatenation function, with safe fill
+* @param char * dest The string to concatenate into. Must be big enough to hold all strings
+* @param size_t max Max number of chars to cat into destination string
+* @param const char * strArgs Pointer to first variadic argument
+* @param ... Variadic string arguments, must be terminated with a NULL argument
+* @return char *
+*/
+	char * strncatcat(char * dest, size_t max, const char* strArgs, ...){
+		va_list valist;
+		va_start(valist, strArgs);
+		const char* str = strArgs;
+		while (str != NULL){
+			if(strlen(dest) + strlen(str) > max){
+				strncpy ( dest+strlen(dest), str, max-strlen(dest) );
+				return dest;
+			}
+			strcat(dest, str);
+	        str = va_arg(valist, const char *);
+		}
+	    va_end(valist);
+	    return dest;
+	}
 
 /**
 * Pust hex string in dest string by usage:
 * char dest[size+1];
-* draw_hex((uint32_t)hex, size, dest);
+* hex((uint32_t)hex, size, dest);
 * @return void
 */
-	void draw_hex(uint32_t hex, uint8_t size, char * dest) {
+	char * hex(uint32_t hex, size_t size, char * dest) {
 	
 		//clamp size to at least 1 char
 			size = (size < 1) ? 1 : size;
@@ -45,13 +70,15 @@ char code[MEM_LENGTH][100];
 			}
 			
 		//read the hex number into the tmp string by size+1 length in the format above
-			snprintf(tmp, (size_t)(size+1), format, hex);
+			snprintf(tmp, size+1, format, hex);
 			
 		//set last char as string null
 			tmp[size] = '\0';
 			
 		//copy those bytes into the destination string
-			strncpy(dest, tmp, (size_t)(size+1));
+			strncpy(dest, tmp, size+1);
+			
+		return dest;
 			
 	}
 	
@@ -99,227 +126,61 @@ char code[MEM_LENGTH][100];
 */
 	void draw_cpu(Display * display, Window window, GC gc){
 	
-		char * msg = "CPU Status";
+		char hashTemp[5];
+		char msg[50] = "CPU Status";
 		int msgX = 780 + (int)(200 - (strlen(msg)*10)) / 2;
-		draw_string(display, window, gc, 0x28d9ed, msgX, 30, msg);
+		draw_string(display, window, gc, COL_CYAN, msgX, 30, msg);
 		
-		//instruction name - now seen in code output
-		//	char arMsg3[100] = "Instruction: ";
-		//	strcat(arMsg3, instructions[cpu.OPC].name);
-		//	int arMsg3X = 780 + (int)(200 - (strlen(arMsg3)*10)) / 2;
-			//draw_string(display, window, gc, 0xFFFFFF, arMsg3X, 60, arMsg3);
+		//instruction txt
+			strcat(strncpy(msg, "Instruction: ", 14), instructions[cpu.OPC].name);
+			msgX = 780 + (int)(200 - (strlen(msg)*10)) / 2;
+			draw_string(display, window, gc, ((cpu_get_drawflag(OPC) == 1) ? COL_MAGENTA : COL_WHITE), msgX, 60, msg);
 		
-		//PCO and OPcode
-			char pcMsg[50] = "PCO-[";
-			char hashTemp[5];
-			draw_hex((uint32_t)cpu.PCO, 2, hashTemp);
-			strcat(pcMsg, hashTemp);
+		//PCO
+			strncatcat(strncpy(msg, "PCO-[", 6), 49, hex(cpu.PCO, 2, hashTemp), "]", NULL);
+			draw_string(display, window, gc, ((cpu_get_drawflag(PCO) == 1) ? COL_MAGENTA : COL_WHITE), 795, 90, msg);
 			
-			strcat(pcMsg, "] OPC-[");
-			char hashTemp2[5];
-			draw_hex((uint32_t)cpu.OPC, 2, hashTemp2);
-			strcat(pcMsg, hashTemp2);
-			strcat(pcMsg, "]");
+		//OPC
+			strncatcat(strncpy(msg, "OPC-[", 6), 49, hex(cpu.OPC, 2, hashTemp), "]", NULL);
+			draw_string(display, window, gc, ((cpu_get_drawflag(OPC) == 1) ? COL_MAGENTA : COL_WHITE), 885, 90, msg);
 			
-			int pcMsgX = 780 + (int)(200 - (strlen(pcMsg)*10)) / 2; //805
-			draw_string(display, window, gc, 0xFFFFFF, pcMsgX, 90, pcMsg);
-		
-		//Stack Pointer and Cycles Remaining
-			char adMsg[50] = "STP-[";
-			char hashTemp3[5];
-			draw_hex((uint32_t)cpu.STP, 2, hashTemp3);
-			strcat(adMsg, hashTemp3);
+		//STP
+			strncatcat(strncpy(msg, "STP-[", 6), 49, hex(cpu.STP, 2, hashTemp), "]", NULL);
+			draw_string(display, window, gc, ((cpu_get_drawflag(STP) == 1) ? COL_MAGENTA : COL_WHITE), 795, 120, msg);
 			
-			strcat(adMsg, "] CRE-[");
-			char hashTemp4[5];
-			draw_hex((uint32_t)cpu.CRE, 2, hashTemp4);
-			strcat(adMsg, hashTemp4);
-			strcat(adMsg, "]");
+		//CRE
+			strncatcat(strncpy(msg, "CRE-[", 6), 49, hex(cpu.CRE, 2, hashTemp), "]", NULL);
+			draw_string(display, window, gc, ((cpu.CRE > 0) ? COL_MAGENTA : COL_WHITE), 885, 120, msg);
 			
-			int adMsgX = 780 + (int)(200 - (strlen(adMsg)*10)) / 2;
-			draw_string(display, window, gc, 0xFFFFFF, adMsgX, 120, adMsg);
-		
-		//internal registers
-			char irMsg[50] = "IR1-[";
-			char hashTemp5[5];
-			draw_hex((uint32_t)cpu.IR1, 2, hashTemp5);
-			strcat(irMsg, hashTemp5);
+		//IR1
+			strncatcat(strncpy(msg, "IR1-[", 6), 49, hex(cpu.IR1, 2, hashTemp), "]", NULL);
+			draw_string(display, window, gc, ((cpu_get_drawflag(IR1) == 1) ? COL_ORANGE : COL_WHITE), 795, 150, msg);
 			
-			strcat(irMsg, "] IR2-[");
-			char hashTemp6[5];
-			draw_hex((uint32_t)cpu.IR2, 2, hashTemp6);
-			strcat(irMsg, hashTemp6);
-			strcat(irMsg, "]");
+		//IR2
+			strncatcat(strncpy(msg, "IR2-[", 6), 49, hex(cpu.IR2, 2, hashTemp), "]", NULL);
+			draw_string(display, window, gc, ((cpu_get_drawflag(IR2) == 1) ? COL_ORANGE : COL_WHITE), 885, 150, msg);
 			
-			int irMsgX = 780 + (int)(200 - (strlen(irMsg)*10)) / 2;
-			draw_string(display, window, gc, 0xFFFFFF, irMsgX, 150, irMsg);
-		
-		//addressable registers
-			char arMsg[50] = "AR0-[";
-			char hashTemp7[5];
-			draw_hex((uint32_t)cpu.AR0, 2, hashTemp7);
-			strcat(arMsg, hashTemp7);
+		//AR0
+			strncatcat(strncpy(msg, "AR0-[", 6), 49, hex(cpu.AR0, 2, hashTemp), "]", NULL);
+			draw_string(display, window, gc, ((cpu_get_drawflag(AR0) == 1) ? COL_GREEN : COL_WHITE), 795, 180, msg);
 			
-			strcat(arMsg, "] AR1-[");
-			char hashTemp8[5];
-			draw_hex((uint32_t)cpu.AR1, 2, hashTemp8);
-			strcat(arMsg, hashTemp8);
-			strcat(arMsg, "]");
+		//AR1
+			strncatcat(strncpy(msg, "AR1-[", 6), 49, hex(cpu.AR1, 2, hashTemp), "]", NULL);
+			draw_string(display, window, gc, ((cpu_get_drawflag(AR1) == 1) ? COL_GREEN : COL_WHITE), 885, 180, msg);
 			
-			int arMsgX = 780 + (int)(200 - (strlen(arMsg)*10)) / 2;
-			draw_string(display, window, gc, 0xFFFFFF, arMsgX, 180, arMsg);
+		//AR2
+			strncatcat(strncpy(msg, "AR2-[", 6), 49, hex(cpu.AR2, 2, hashTemp), "]", NULL);
+			draw_string(display, window, gc, ((cpu_get_drawflag(AR2) == 1) ? COL_GREEN : COL_WHITE), 795, 210, msg);
 			
-			char arMsg2[50] = "AR2-[";
-			char hashTemp9[5];
-			draw_hex((uint32_t)cpu.AR2, 2, hashTemp9);
-			strcat(arMsg2, hashTemp9);
+		//AR3
+			strncatcat(strncpy(msg, "AR3-[", 6), 49, hex(cpu.AR3, 2, hashTemp), "]", NULL);
+			draw_string(display, window, gc, ((cpu_get_drawflag(AR3) == 1) ? COL_GREEN : COL_WHITE), 885, 210, msg);
 			
-			strcat(arMsg2, "] AR3-[");
-			char hashTemp11[5];
-			draw_hex((uint32_t)cpu.AR3, 2, hashTemp11);
-			strcat(arMsg2, hashTemp11);
-			strcat(arMsg2, "]");
-			int arMsg2X = 780 + (int)(200 - (strlen(arMsg2)*10)) / 2;
-			draw_string(display, window, gc, 0xFFFFFF, arMsg2X, 210, arMsg2);
-			
-		//drawflags to highlight current things
-			
-			//PCO
-				if(cpu_get_drawflag(PCO) == 1){
-				
-					char hpcMsg[50] = "PCO-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.PCO, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 795, 90, hpcMsg);
-				
-				}
-				
-			//OPC
-				if(cpu_get_drawflag(OPC) == 1){
-				
-					char hpcMsg[50] = "OPC-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.OPC, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 885, 90, hpcMsg);
-				
-				}
-				
-			//STP
-				if(cpu_get_drawflag(STP) == 1){
-				
-					char hpcMsg[50] = "STP-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.STP, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 795, 120, hpcMsg);
-					
-				}
-				
-			//CRE
-				if(cpu.CRE > 0){
-				
-					char hpcMsg[50] = "CRE-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.CRE, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 885, 120, hpcMsg);
-					
-				}
-				
-			//IR1
-				if(cpu_get_drawflag(IR1) == 1){
-				
-					char hpcMsg[50] = "IR1-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.IR1, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 795, 150, hpcMsg);
-				
-				}
-				
-			//IR2
-				if(cpu_get_drawflag(IR2) == 1){
-					char hpcMsg[50] = "IR2-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.IR2, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 885, 150, hpcMsg);
-				}
-				
-			//AR0
-				if(cpu_get_drawflag(AR0) == 1){
-				
-					char hpcMsg[50] = "AR0-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.AR0, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 795, 180, hpcMsg);
-				
-				}
-				
-			//AR1
-				if(cpu_get_drawflag(AR1) == 1){
-					char hpcMsg[50] = "AR1-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.AR1, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 885, 180, hpcMsg);
-				}
-				
-			//AR2
-				if(cpu_get_drawflag(AR2) == 1){
-					char hpcMsg[50] = "AR2-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.AR2, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 795, 210, hpcMsg);
-				}
-				
-			//AR3
-				if(cpu_get_drawflag(AR3) == 1){
-					char hpcMsg[50] = "AR3-[";
-					char hHashTemp[5];
-					draw_hex((uint32_t)cpu.AR3, 2, hHashTemp);
-					strcat(hpcMsg, hHashTemp);
-					strcat(hpcMsg, "]");
-					draw_string(display, window, gc, 0xFF00E8, 885, 210, hpcMsg);
-				}
-				
-			//cpu status flags
-				if(cpu.C == true){
-					draw_string(display, window, gc, 0x22d816, 805, 240, "C:1");
-				} else {
-					draw_string(display, window, gc, 0xd81616, 805, 240, "C:0");
-				}
-				
-				if(cpu.Z == true){
-					draw_string(display, window, gc, 0x22d816, 845, 240, "Z:1");
-				} else {
-					draw_string(display, window, gc, 0xd81616, 845, 240, "Z:0");
-				}
-				
-				if(cpu.V == true){
-					draw_string(display, window, gc, 0x22d816, 885, 240, "V:1");
-				} else {
-					draw_string(display, window, gc, 0xd81616, 885, 240, "V:0");
-				}
-				
-				if(cpu.N == true){
-					draw_string(display, window, gc, 0x22d816, 925, 240, "N:1");
-				} else {
-					draw_string(display, window, gc, 0xd81616, 925, 240, "N:0");
-				}
+		//cpu status flags
+			draw_string(display, window, gc, ((cpu.C) ? COL_GREEN : COL_RED), 805, 240, ((cpu.C) ? "C:1" : "C:0"));
+			draw_string(display, window, gc, ((cpu.Z) ? COL_GREEN : COL_RED), 845, 240, ((cpu.Z) ? "Z:1" : "Z:0"));
+			draw_string(display, window, gc, ((cpu.V) ? COL_GREEN : COL_RED), 885, 240, ((cpu.V) ? "V:1" : "V:0"));
+			draw_string(display, window, gc, ((cpu.N) ? COL_GREEN : COL_RED), 925, 240, ((cpu.N) ? "N:1" : "N:0"));
 	
 	}
 
@@ -339,29 +200,28 @@ char code[MEM_LENGTH][100];
 		int pcCol = 0, pcY = 0, pcX;
 		uint8_t pcVal = 0;
 		
+		char txt[120];
+		char hashTemp[5];
+		
 		//draw mem table header in cyan
-			char topLine[120] = " RAM";
+			strncpy(txt, " RAM", 5);
 			
-			for (int col = 0; col < 16; col++){
+			for (uint8_t col = 0; col < 16; col++){
 			
 				if(col == 8){
-					strcat(topLine, "  ");
+					strcat(txt, "  ");
 				}
 				
 				if(col == 0){
-					strcat(topLine, " 00");
+					strcat(txt, " 00");
 				} else {
-					strcat(topLine, " ");
-					char hashTemp2[5];
-					draw_hex((uint32_t)col, 2, hashTemp2);
-					strcat(topLine, hashTemp2);
+					strncatcat(txt, 119, " ", hex(col, 2, hashTemp), NULL);
 				}
 				
 			}
 			
-			strcat(topLine, "      HEX > ASCII");
-			
-			draw_string(display, window, gc, 0x28d9ed, 10, y, topLine);
+			strcat(txt, "      HEX > ASCII");
+			draw_string(display, window, gc, COL_CYAN, 10, y, txt);
 			
 		//now draw bulk
 			y += lineHeight;
@@ -376,58 +236,48 @@ char code[MEM_LENGTH][100];
 				//split memory into two blocks
 					if(row == 8){
 					
-						y += 15;
+						y += lineHeight  / 2;
 						
-						//draw mem table header in cyan
-						char topLine2[120] = " ROM";
-						
-						for (int col = 0; col < 16; col++){
+						strncpy(txt, " ROM", 5);
+			
+						for (uint8_t col = 0; col < 16; col++){
 						
 							if(col == 8){
-								strcat(topLine2, "  ");
+								strcat(txt, "  ");
 							}
 							
 							if(col == 0){
-								strcat(topLine2, " 00");
+								strcat(txt, " 00");
 							} else {
-								strcat(topLine2, " ");
-								char hashTemp2[5];
-								draw_hex((uint32_t)col, 2, hashTemp2);
-								strcat(topLine2, hashTemp2);
+								strncatcat(txt, 119, " ", hex(col, 2, hashTemp), NULL);
 							}
 							
 						}
 						
-						strcat(topLine2, "      HEX > ASCII");
-						draw_string(display, window, gc, 0x28d9ed, 10, y, topLine2);
+						strcat(txt, "      HEX > ASCII");
+						draw_string(display, window, gc, COL_CYAN, 10, y, txt);
 						
-						y += 30;
+						y += lineHeight;
 						
 					}
 			
 				//draw the starting address of this line of bytes
-					char memStart[8] = " $";
-					char hashTemp[5];
-					draw_hex((uint32_t)nAddr, 2, hashTemp);
-					strcat(memStart, hashTemp);
-					draw_string(display, window, gc, 0x28d9ed, 10, y, memStart);
+					strcat(strncpy(txt, " $", 3), hex(nAddr, 2, hashTemp));
+					draw_string(display, window, gc, COL_CYAN, 10, y, txt);
 				
 				//now output the line of hex bytes
-					char line[120] = "";
+					strncpy(txt, "", 2);
 					
 					for (int col = 0; col < 16; col++){
 					
 						if(col == 8){
-							strcat(line, "  ");
+							strcat(txt, "  ");
 						}
 					
 						if(cpu.RAM[nAddr] == 0){
-							strcat(line, " 00");
+							strcat(txt, " 00");
 						} else {
-							strcat(line, " ");
-							char hashTemp2[4];
-							draw_hex(cpu.RAM[nAddr], 2, hashTemp2);
-							strcat(line, hashTemp2);
+							strncatcat(txt, 119, " ", hex(cpu.RAM[nAddr], 2, hashTemp), NULL);
 						}
 						
 						if(nAddr == cpu.PCO-1 && cpu.PCO-1 >= PROG_MEM_LOC){
@@ -440,40 +290,40 @@ char code[MEM_LENGTH][100];
 					}
 				
 				//now convert to ascii output
-					strcat(line, "  |");
+					strcat(txt, "  |");
 					
 					nAddr = (uint8_t)(nAddr - 0x10); //16
 					for (int col = 0; col < 16; col++){
 						
 						if(col == 8){
-							strcat(line, " ");
+							strcat(txt, " ");
 						}
 					
 						if ((unsigned char)cpu.RAM[nAddr] >= ' ' && (unsigned char)cpu.RAM[nAddr] <= '~'){
 							char c[10] = " ";
 							snprintf(c, 2, "%c",  cpu.RAM[nAddr]);
-							strcat(line,c);
+							strcat(txt,c);
 						} else {
-							strcat(line,".");
+							strcat(txt,".");
 						}
 						
 						nAddr++;
 					}
 					
-					strcat(line,"|");
+					strcat(txt,"|");
 				
 					if(row == 7){
 					
 						char * msg = "<- Stack";
 						int msgX = 780 + (int)(200 - (strlen(msg)*10)) / 2;
-						draw_string(display, window, gc, 0x28d9ed, msgX, (9*30)+15, msg);
+						draw_string(display, window, gc, COL_CYAN, msgX, (9*30)+15, msg);
 					
 					}
 				
 				//draw line to screen
-					draw_string(display, window, gc, 0xffffff, 50, y, line);
+					draw_string(display, window, gc, 0xffffff, 50, y, txt);
 				
-				y += 30;
+				y += lineHeight;
 				
 			}
 			
@@ -481,31 +331,28 @@ char code[MEM_LENGTH][100];
 		//PC Hex value
 			pcX = 50 + (pcCol*30) + ((pcCol >= 8) ? 20 : 0);
 			
-			char pcLine[50] = " ";
-			
+			strncpy(txt, " ", 2);
 			if(pcVal == 0){
-				strcat(pcLine, "00");
+				strcat(txt, "00");
 			} else {
-				char hashTemp2[4];
-				draw_hex(pcVal, 2, hashTemp2);
-				strcat(pcLine, hashTemp2);
+				strcat(txt, hex(pcVal, 2, hashTemp));
 			}
 			
-			draw_string(display, window, gc, 0xff5100, pcX, pcY, pcLine);
+			draw_string(display, window, gc, COL_ORANGE, pcX, pcY, txt);
 			
 		//now highlight ascii output
 			pcX = 570 + (pcCol*10) + ((pcCol >= 8) ? 10 : 0);
 			
-			char asciiLine[50] = " ";
+			strncpy(txt, " ", 2);
 			if (pcVal >= ' ' && pcVal <= '~'){
 				char c[10] = " ";
 				snprintf(c, 2, "%c",  pcVal);
-				strcat(asciiLine,c);
+				strcat(txt,c);
 			} else {
-				strcat(asciiLine,".");
+				strcat(txt,".");
 			}
 			
-			draw_string(display, window, gc, 0xff5100, pcX, pcY, asciiLine);
+			draw_string(display, window, gc, COL_ORANGE, pcX, pcY, txt);
 		
 	}
 	
@@ -520,7 +367,7 @@ char code[MEM_LENGTH][100];
 	
 		char * msg = "Code Lines";
 		int msgX = 780 + (int)(200 - (strlen(msg)*10)) / 2;
-		draw_string(display, window, gc, 0x28d9ed, msgX, 330, msg);
+		draw_string(display, window, gc, COL_CYAN, msgX, 330, msg);
 	
 		char lines[8][100];
 		
@@ -583,10 +430,10 @@ char code[MEM_LENGTH][100];
 			
 				if(i == midPoint){
 					//draw cyan
-					draw_string(display, window, gc, 0x28d9ed, lineX, lineY, lines[i]);
+					draw_string(display, window, gc, COL_CYAN, lineX, lineY, lines[i]);
 				} else {
 					//draw white
-					draw_string(display, window, gc, 0xFFFFFF, lineX, lineY, lines[i]);
+					draw_string(display, window, gc, COL_WHITE, lineX, lineY, lines[i]);
 				}
 			}
 	
@@ -608,7 +455,7 @@ char code[MEM_LENGTH][100];
 		
 		char * msg = "Press Space to step through CPU Cycles. Q = Quit, R = Reset, A = Slow Auto, F = Fast Auto.";
 		int msgX = (int)(1000 - (strlen(msg)*10)) / 2;
-		draw_string(display, window, gc, 0xFFFFFF, msgX, 615, msg);
+		draw_string(display, window, gc, COL_WHITE, msgX, 615, msg);
 	
 	}
 	
@@ -618,13 +465,12 @@ char code[MEM_LENGTH][100];
 */
 	void code_disassemble(){
 	
+		char line [50] = "";
+		char num[5];
+		char cycles[10];
+	
 		for(uint8_t i = 0; i < 128; i++){
-			char line [50] = "$";
-			char hex[5];
-			draw_hex(i, 2, hex);
-			strcat(line, hex);
-			strcat(line, ": NOP c2");
-			strcpy(code[i], line);
+			strncpy(code[i], strncatcat(strcpy(line, "$"), 49, hex(i, 2, num),": NOP c2", NULL), 12);
 		}
 	
 		//start at program address
@@ -635,19 +481,10 @@ char code[MEM_LENGTH][100];
 		
 			//start line string
 				lineAddr = addr;
-				char line[100] = "$";
-				char hashTemp[5]; //+1 for \0
-				draw_hex(addr, 2, hashTemp);
-				strcat(line, hashTemp);
-				strcat(line, ": ");
-			
 				uint8_t opcode = cpu.RAM[addr];
-				strcat(line, instructions[opcode].name);
+				snprintf(cycles, 4,"%d", instructions[opcode].cycles);
+				strncatcat(strcpy(line, "$"), 49, hex(addr, 2, num),": ",instructions[opcode].name," c",cycles, NULL);
 				
-				char cycles[10];
-				sprintf(cycles, " c%d", instructions[opcode].cycles);
-				strcat(line, cycles);
-			
 			//get next addr
 				addr++;
 			
@@ -676,34 +513,17 @@ char code[MEM_LENGTH][100];
 * @return bool
 */
 	bool program_is_hex_char(uint8_t c){
-		if(
-			c != 'a' &&
-			c != 'A' &&
-			c != 'b' &&
-			c != 'B' &&
-			c != 'c' &&
-			c != 'C' &&
-			c != 'd' &&
-			c != 'D' &&
-			c != 'e' &&
-			c != 'E' &&
-			c != 'f' &&
-			c != 'F' &&
-			c != '0' &&
-			c != '1' &&
-			c != '2' &&
-			c != '3' &&
-			c != '4' &&
-			c != '5' &&
-			c != '6' &&
-			c != '7' &&
-			c != '8' &&
-			c != '9'
+	
+		if (
+			(c >= '0' && c <= '9') ||
+			(c >= 'a' && c <= 'f') ||
+			(c >= 'A' && c <= 'F')
 		){
-			return false;
+			return true;
 		}
 		
-		return true;
+		return false;
+		
 	}
 	
 /**
@@ -776,7 +596,7 @@ char code[MEM_LENGTH][100];
 			fp = fopen("prog.txt", "r");
 			
 			if (fp == NULL){
-				//printf("No Assembly File 'prog.txt'. Closing...\n");
+				console_print("No Assembly File 'prog.txt'. Closing...\n", true);
 				exit(1);
 			}
 		
