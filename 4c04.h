@@ -164,6 +164,9 @@
 			void cpu_ins_XOV();
 			void cpu_ins_XOR();
 			
+			void cpu_ins_PRS();
+			void cpu_ins_PSR();
+			
 			void system_restart();
 			void cpu_execute();
 	

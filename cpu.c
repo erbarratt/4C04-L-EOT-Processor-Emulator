@@ -36,9 +36,8 @@
 		{"XOV", "Bitwise XOR, from Value",             &cpu_ins_XOV, 4, 2},       //13 [#reg0-2] [#reg0-2] Stores in first reg defined
 		{"XOR", "Bitwise XOR, from Register",          &cpu_ins_XOR, 4, 2},       //14 [#reg0-2] [#reg0-2] Stores in first reg defined
 		
-		//TODO:
-		//push reg to stack
-		//pop stack to reg
+		{"PRS", "Push Register to Stack",              &cpu_ins_PRS, 3, 1},       //15 [#reg0-2]
+		{"PSR", "Pop Stack to Register",               &cpu_ins_PSR, 3, 1},       //16 [#reg0-2]
 		
 	};
 	
@@ -1092,6 +1091,60 @@
 						cpu.Z = (cpu.IR2 == 0);
 					//negative?
 						cpu.N = ((cpu.IR2 & 0x0080) == 0x0080);
+				break;
+		}
+	
+	}
+	
+/*
+* Instruction: Push Register to Stack
+* 3 cycles
+* @return void
+*/
+	void cpu_ins_PRS(){
+	
+		switch(cpu.CRE){
+		
+			//load IR1 with the identifier for which register to push
+				case 3:
+					cpu_set_ir(1, cpu_read(cpu.PCO, true));
+				break;
+				
+			//load IR2 with the value from reg defined in IR1
+				case 2:
+					cpu_set_ir(2, cpu_reg_val(cpu.IR1));
+				break;
+				
+			//push to stack
+				case 1:
+					cpu_stack_push(cpu.IR2);
+				break;
+		}
+	
+	}
+	
+/*
+* Instruction: Pop Stack to Register
+* 3 cycles
+* @return void
+*/
+	void cpu_ins_PSR(){
+	
+		switch(cpu.CRE){
+		
+			//load IR1 with the identifier for which register to push
+				case 3:
+					cpu_set_ir(1, cpu_read(cpu.PCO, true));
+				break;
+				
+			//load IR2 with the value from reg defined in IR1
+				case 2:
+					cpu_set_ir(2, cpu_stack_pop());
+				break;
+				
+			//populate register with value now in IR2
+				case 1:
+					cpu_set_reg(cpu.IR1, cpu.IR2);
 				break;
 		}
 	
