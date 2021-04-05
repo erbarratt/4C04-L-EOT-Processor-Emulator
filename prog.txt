@@ -1,5 +1,5 @@
 :start                      ;marker for final jump to ensure program loops
-
+							;blank line
 @output                     ;define a subroutine
 LRR R0 R2                   ;load R0 from mem loc stored in R2
 STR R0 R1                   ;store R0 to mem loc stored in R1
